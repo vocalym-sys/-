@@ -64,6 +64,7 @@ html, body {
 
 .filter-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 12px;
   border-bottom: 1px solid var(--border);
@@ -84,6 +85,16 @@ html, body {
 
 .filter-chip input {
   accent-color: var(--chip-color, var(--accent));
+}
+
+.coverage-chip {
+  border-style: dashed;
+  color: var(--text-muted);
+  border-color: #b8bec7;
+}
+
+.coverage-chip input {
+  accent-color: var(--text-muted);
 }
 
 .station-count {

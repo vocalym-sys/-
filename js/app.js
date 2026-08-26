@@ -4,6 +4,12 @@
     "내륙": "#c0392b",
   };
 
+  // 커버리지 확인용 반경: 해양기준국 100해리(NM), 내륙기준국 80km
+  const COVERAGE_RADIUS_M = {
+    "해양": 100 * 1852,
+    "내륙": 80 * 1000,
+  };
+
   const map = L.map("map", { zoomControl: true }).setView([36.2, 127.8], 7);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -12,7 +18,9 @@
   }).addTo(map);
 
   const markers = new Map();
+  const circles = new Map();
   const activeTypes = new Set(Object.keys(TYPE_COLORS));
+  let showCoverage = true;
 
   function dmsFromDecimal(deg) {
     const sign = deg < 0 ? -1 : 1;
@@ -51,6 +59,20 @@
   );
 
   validStations.forEach((station) => {
+    const color = TYPE_COLORS[station.type] || "#666";
+
+    const circle = L.circle([station.lat, station.lng], {
+      radius: COVERAGE_RADIUS_M[station.type] || 0,
+      color: color,
+      weight: 1,
+      opacity: 0.6,
+      fillColor: color,
+      fillOpacity: 0.06,
+      dashArray: "4 4",
+      interactive: false,
+    }).addTo(map);
+    circles.set(station.name, circle);
+
     const marker = L.marker([station.lat, station.lng], {
       icon: makeIcon(station.type),
     })
@@ -78,16 +100,36 @@
       });
       container.appendChild(wrap);
     });
+
+    const coverageWrap = document.createElement("label");
+    coverageWrap.className = "filter-chip coverage-chip";
+    coverageWrap.innerHTML = `
+      <input type="checkbox" id="filter-coverage" checked />
+      <span>커버리지 반경</span>
+    `;
+    coverageWrap.querySelector("input").addEventListener("change", (e) => {
+      showCoverage = e.target.checked;
+      applyFilter();
+    });
+    container.appendChild(coverageWrap);
   }
 
   function applyFilter() {
     validStations.forEach((station) => {
       const marker = markers.get(station.name);
+      const circle = circles.get(station.name);
       const visible = activeTypes.has(station.type);
+
       if (visible) {
         if (!map.hasLayer(marker)) marker.addTo(map);
       } else {
         if (map.hasLayer(marker)) map.removeLayer(marker);
+      }
+
+      if (visible && showCoverage) {
+        if (!map.hasLayer(circle)) circle.addTo(map);
+      } else {
+        if (map.hasLayer(circle)) map.removeLayer(circle);
       }
     });
     renderStationList();
