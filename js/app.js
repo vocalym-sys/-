@@ -31,6 +31,35 @@
   const activeTypes = new Set(Object.keys(TYPE_COLORS));
   const activeStations = new Set(STATIONS.map((s) => s.name));
   let showCoverage = true;
+  let dgnssCategoryOn = true;
+  let pppRtkCategoryOn = true;
+
+  // --- PPP-RTK(센티미터급) 서비스 구역 ---
+  const PPP_RTK_COLOR = "#00897b";
+
+  const pppRtkLayer = L.layerGroup();
+  L.polygon(PPP_RTK_ZONE, {
+    color: PPP_RTK_COLOR,
+    weight: 2,
+    opacity: 0.8,
+    fillColor: PPP_RTK_COLOR,
+    fillOpacity: 0.12,
+    interactive: false,
+  }).addTo(pppRtkLayer);
+
+  PPP_RTK_ISLANDS.forEach((island) => {
+    L.circle([island.lat, island.lng], {
+      radius: island.radiusKm * 1000,
+      color: PPP_RTK_COLOR,
+      weight: 2,
+      opacity: 0.8,
+      fillColor: PPP_RTK_COLOR,
+      fillOpacity: 0.12,
+      interactive: false,
+    }).addTo(pppRtkLayer);
+  });
+
+  pppRtkLayer.addTo(map);
 
   function dmsFromDecimal(deg) {
     const sign = deg < 0 ? -1 : 1;
@@ -125,7 +154,7 @@
   }
 
   function stationVisible(station) {
-    return activeTypes.has(station.type) && activeStations.has(station.name);
+    return dgnssCategoryOn && activeTypes.has(station.type) && activeStations.has(station.name);
   }
 
   function setStationVisibility(station, visible) {
@@ -401,7 +430,29 @@
 
   map.addControl(new MeasureControl());
 
+  function wireCategoryToggles() {
+    const dgnssToggle = document.getElementById("toggleDgnss");
+    const pppRtkToggle = document.getElementById("togglePppRtk");
+    const dgnssPanel = document.getElementById("dgnssPanel");
+
+    dgnssToggle.addEventListener("change", (e) => {
+      dgnssCategoryOn = e.target.checked;
+      dgnssPanel.classList.toggle("hidden", !dgnssCategoryOn);
+      applyFilter();
+    });
+
+    pppRtkToggle.addEventListener("change", (e) => {
+      pppRtkCategoryOn = e.target.checked;
+      if (pppRtkCategoryOn) {
+        pppRtkLayer.addTo(map);
+      } else {
+        map.removeLayer(pppRtkLayer);
+      }
+    });
+  }
+
   renderTypeFilters();
   wireSelectAll();
+  wireCategoryToggles();
   renderStationList();
 })();

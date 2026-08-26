@@ -67,6 +67,35 @@ html, body {
   filter: saturate(1.35) contrast(1.08) brightness(0.98);
 }
 
+.category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: #f7f8fa;
+  border-bottom: 2px solid var(--border);
+}
+
+.category-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.category-toggle input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#dgnssPanel.hidden {
+  display: none;
+}
+
 .filter-group {
   display: flex;
   flex-wrap: wrap;
