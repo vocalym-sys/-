@@ -4,6 +4,12 @@
     "내륙": "#c0392b",
   };
 
+  // 베이스 지도와 확연히 구별되는 코버리지 원 색상 (마커 색과는 별도)
+  const COVERAGE_COLORS = {
+    "해양": "#ff6d00",
+    "내륙": "#8e24aa",
+  };
+
   // 커버리지 확인용 반경: 해양기준국 100해리(NM), 내륙기준국 80km
   const COVERAGE_RADIUS_M = {
     "해양": 100 * 1852,
@@ -12,9 +18,12 @@
 
   const map = L.map("map", { zoomControl: true }).setView([36.2, 127.8], 7);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 18,
+  // 지명 라벨이 없는 일반 지도(CARTO Voyager, no labels)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 19,
   }).addTo(map);
 
   const markers = new Map();
@@ -60,16 +69,16 @@
   );
 
   validStations.forEach((station) => {
-    const color = TYPE_COLORS[station.type] || "#666";
+    const coverageColor = COVERAGE_COLORS[station.type] || "#333";
 
     const circle = L.circle([station.lat, station.lng], {
       radius: COVERAGE_RADIUS_M[station.type] || 0,
-      color: color,
-      weight: 1,
-      opacity: 0.6,
-      fillColor: color,
-      fillOpacity: 0.06,
-      dashArray: "4 4",
+      color: coverageColor,
+      weight: 2,
+      opacity: 0.9,
+      fillColor: coverageColor,
+      fillOpacity: 0.1,
+      dashArray: "8 5",
       interactive: false,
     }).addTo(map);
     circles.set(station.name, circle);
@@ -204,6 +213,193 @@
       applyFilter();
     });
   }
+
+  // --- 거리 / 면적 측정 ---
+  const MEASURE_COLORS = { distance: "#e91e63", area: "#00bcd4" };
+
+  const measureState = {
+    mode: null, // "distance" | "area" | null
+    points: [],
+    layer: null,
+    vertexMarkers: [],
+  };
+
+  function toRad(deg) {
+    return (deg * Math.PI) / 180;
+  }
+
+  function formatDistance(m) {
+    return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
+  }
+
+  function formatArea(m2) {
+    return m2 >= 1e6 ? `${(m2 / 1e6).toFixed(2)} km²` : `${Math.round(m2)} m²`;
+  }
+
+  function computeDistance(latlngs) {
+    let total = 0;
+    for (let i = 1; i < latlngs.length; i++) {
+      total += map.distance(latlngs[i - 1], latlngs[i]);
+    }
+    return total;
+  }
+
+  // 구면 다각형 면적(spherical excess 근사식), 극지방이 아닌 일반적인 범위에서 충분히 정확함
+  function computeArea(latlngs) {
+    if (latlngs.length < 3) return 0;
+    const R = 6371000;
+    let sum = 0;
+    for (let i = 0; i < latlngs.length; i++) {
+      const p1 = latlngs[i];
+      const p2 = latlngs[(i + 1) % latlngs.length];
+      sum += toRad(p2.lng - p1.lng) * (2 + Math.sin(toRad(p1.lat)) + Math.sin(toRad(p2.lat)));
+    }
+    return Math.abs((sum * R * R) / 2);
+  }
+
+  function updateMeasureButtons() {
+    const distBtn = document.getElementById("measureDistanceBtn");
+    const areaBtn = document.getElementById("measureAreaBtn");
+    if (distBtn) distBtn.classList.toggle("active", measureState.mode === "distance");
+    if (areaBtn) areaBtn.classList.toggle("active", measureState.mode === "area");
+  }
+
+  function updateMeasureResult() {
+    const resultEl = document.getElementById("measureResult");
+    if (!resultEl) return;
+    if (!measureState.mode) {
+      resultEl.textContent = "";
+      return;
+    }
+    if (measureState.points.length === 0) {
+      resultEl.textContent =
+        measureState.mode === "distance"
+          ? "지도를 클릭해 거리를 측정할 지점을 추가하세요."
+          : "지도를 클릭해 면적을 측정할 지점을 추가하세요 (3개 이상).";
+      return;
+    }
+    if (measureState.mode === "distance") {
+      resultEl.textContent = `거리: ${formatDistance(computeDistance(measureState.points))} (${measureState.points.length}개 지점)`;
+    } else {
+      resultEl.textContent =
+        measureState.points.length >= 3
+          ? `면적: ${formatArea(computeArea(measureState.points))} (${measureState.points.length}개 지점)`
+          : `지점 ${measureState.points.length}개 (최소 3개 필요)`;
+    }
+  }
+
+  function clearMeasurement() {
+    measureState.points = [];
+    if (measureState.layer) {
+      map.removeLayer(measureState.layer);
+      measureState.layer = null;
+    }
+    measureState.vertexMarkers.forEach((m) => map.removeLayer(m));
+    measureState.vertexMarkers = [];
+    updateMeasureResult();
+  }
+
+  function addMeasurePoint(latlng) {
+    measureState.points.push(latlng);
+    const color = MEASURE_COLORS[measureState.mode];
+
+    const vertex = L.circleMarker(latlng, {
+      radius: 4,
+      color: color,
+      weight: 2,
+      fillColor: "#fff",
+      fillOpacity: 1,
+    }).addTo(map);
+    measureState.vertexMarkers.push(vertex);
+
+    if (measureState.mode === "distance") {
+      if (measureState.layer) {
+        measureState.layer.setLatLngs(measureState.points);
+      } else {
+        measureState.layer = L.polyline(measureState.points, {
+          color: color,
+          weight: 3,
+          dashArray: "6 4",
+        }).addTo(map);
+      }
+    } else if (measureState.mode === "area") {
+      if (measureState.layer) {
+        measureState.layer.setLatLngs(measureState.points);
+      } else {
+        measureState.layer = L.polygon(measureState.points, {
+          color: color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.15,
+        }).addTo(map);
+      }
+    }
+    updateMeasureResult();
+  }
+
+  function setMeasureMode(mode) {
+    if (measureState.mode === mode) {
+      exitMeasureMode();
+      return;
+    }
+    clearMeasurement();
+    measureState.mode = mode;
+    map.doubleClickZoom.disable();
+    map.getContainer().style.cursor = "crosshair";
+    updateMeasureButtons();
+    updateMeasureResult();
+  }
+
+  function exitMeasureMode() {
+    measureState.mode = null;
+    map.doubleClickZoom.enable();
+    map.getContainer().style.cursor = "";
+    updateMeasureButtons();
+    updateMeasureResult();
+  }
+
+  map.on("click", (e) => {
+    if (!measureState.mode) return;
+    addMeasurePoint(e.latlng);
+  });
+  map.on("dblclick", () => {
+    if (measureState.mode) exitMeasureMode();
+  });
+
+  const MeasureControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "measure-control");
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.disableScrollPropagation(container);
+
+      const buttons = L.DomUtil.create("div", "measure-buttons", container);
+
+      const distBtn = L.DomUtil.create("button", "measure-btn", buttons);
+      distBtn.id = "measureDistanceBtn";
+      distBtn.type = "button";
+      distBtn.textContent = "📏 거리 측정";
+      L.DomEvent.on(distBtn, "click", () => setMeasureMode("distance"));
+
+      const areaBtn = L.DomUtil.create("button", "measure-btn", buttons);
+      areaBtn.id = "measureAreaBtn";
+      areaBtn.type = "button";
+      areaBtn.textContent = "▱ 면적 측정";
+      L.DomEvent.on(areaBtn, "click", () => setMeasureMode("area"));
+
+      const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", buttons);
+      clearBtn.type = "button";
+      clearBtn.textContent = "초기화";
+      L.DomEvent.on(clearBtn, "click", () => clearMeasurement());
+
+      const result = L.DomUtil.create("div", "measure-result", container);
+      result.id = "measureResult";
+
+      return container;
+    },
+  });
+
+  map.addControl(new MeasureControl());
 
   renderTypeFilters();
   wireSelectAll();
