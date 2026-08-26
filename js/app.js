@@ -143,6 +143,16 @@
       (STATIONS.length > validStations.length
         ? ` (좌표 미확인 ${STATIONS.length - validStations.length}개소 제외)`
         : "");
+    updateSelectAllState();
+  }
+
+  function updateSelectAllState() {
+    const selectAll = document.getElementById("selectAllStations");
+    if (!selectAll) return;
+    const total = validStations.length;
+    const activeCount = validStations.filter((s) => activeStations.has(s.name)).length;
+    selectAll.checked = activeCount === total;
+    selectAll.indeterminate = activeCount > 0 && activeCount < total;
   }
 
   function applyFilter() {
@@ -153,13 +163,12 @@
   function renderStationList() {
     const list = document.getElementById("stationList");
     list.innerHTML = "";
-    const typeVisibleStations = validStations.filter((s) => activeTypes.has(s.type));
     updateStationCount();
 
-    typeVisibleStations.forEach((station) => {
+    validStations.forEach((station) => {
       const on = activeStations.has(station.name);
       const li = document.createElement("li");
-      li.className = on ? "" : "off";
+      li.className = stationVisible(station) ? "" : "off";
       li.innerHTML = `
         <input type="checkbox" class="station-toggle" ${on ? "checked" : ""} aria-label="${station.name} 표시 여부" />
         <span class="dot" style="background:${TYPE_COLORS[station.type]}"></span>
@@ -171,7 +180,7 @@
       checkbox.addEventListener("change", (e) => {
         if (e.target.checked) activeStations.add(station.name);
         else activeStations.delete(station.name);
-        li.classList.toggle("off", !e.target.checked);
+        li.classList.toggle("off", !stationVisible(station));
         setStationVisibility(station, stationVisible(station));
         updateStationCount();
       });
@@ -183,6 +192,20 @@
     });
   }
 
+  function wireSelectAll() {
+    const selectAll = document.getElementById("selectAllStations");
+    selectAll.addEventListener("click", (e) => e.stopPropagation());
+    selectAll.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        validStations.forEach((s) => activeStations.add(s.name));
+      } else {
+        activeStations.clear();
+      }
+      applyFilter();
+    });
+  }
+
   renderTypeFilters();
+  wireSelectAll();
   renderStationList();
 })();
