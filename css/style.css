@@ -126,6 +126,16 @@ html, body {
   background: #f2f6fa;
 }
 
+#stationList .station-toggle {
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#stationList li.off {
+  opacity: 0.45;
+}
+
 #stationList .dot {
   width: 9px;
   height: 9px;

@@ -20,6 +20,7 @@
   const markers = new Map();
   const circles = new Map();
   const activeTypes = new Set(Object.keys(TYPE_COLORS));
+  const activeStations = new Set(STATIONS.map((s) => s.name));
   let showCoverage = true;
 
   function dmsFromDecimal(deg) {
@@ -114,47 +115,69 @@
     container.appendChild(coverageWrap);
   }
 
+  function stationVisible(station) {
+    return activeTypes.has(station.type) && activeStations.has(station.name);
+  }
+
+  function setStationVisibility(station, visible) {
+    const marker = markers.get(station.name);
+    const circle = circles.get(station.name);
+
+    if (visible) {
+      if (!map.hasLayer(marker)) marker.addTo(map);
+    } else {
+      if (map.hasLayer(marker)) map.removeLayer(marker);
+    }
+
+    if (visible && showCoverage) {
+      if (!map.hasLayer(circle)) circle.addTo(map);
+    } else {
+      if (map.hasLayer(circle)) map.removeLayer(circle);
+    }
+  }
+
+  function updateStationCount() {
+    const shown = validStations.filter(stationVisible).length;
+    document.getElementById("stationCount").textContent =
+      `표시된 기준국: ${shown} / 전체 ${STATIONS.length}` +
+      (STATIONS.length > validStations.length
+        ? ` (좌표 미확인 ${STATIONS.length - validStations.length}개소 제외)`
+        : "");
+  }
+
   function applyFilter() {
-    validStations.forEach((station) => {
-      const marker = markers.get(station.name);
-      const circle = circles.get(station.name);
-      const visible = activeTypes.has(station.type);
-
-      if (visible) {
-        if (!map.hasLayer(marker)) marker.addTo(map);
-      } else {
-        if (map.hasLayer(marker)) map.removeLayer(marker);
-      }
-
-      if (visible && showCoverage) {
-        if (!map.hasLayer(circle)) circle.addTo(map);
-      } else {
-        if (map.hasLayer(circle)) map.removeLayer(circle);
-      }
-    });
+    validStations.forEach((station) => setStationVisibility(station, stationVisible(station)));
     renderStationList();
   }
 
   function renderStationList() {
     const list = document.getElementById("stationList");
     list.innerHTML = "";
-    const visibleStations = validStations.filter((s) => activeTypes.has(s.type));
-    document.getElementById("stationCount").textContent =
-      `표시된 기준국: ${visibleStations.length} / 전체 ${STATIONS.length}` +
-      (STATIONS.length > validStations.length
-        ? ` (좌표 미확인 ${STATIONS.length - validStations.length}개소 제외)`
-        : "");
+    const typeVisibleStations = validStations.filter((s) => activeTypes.has(s.type));
+    updateStationCount();
 
-    visibleStations.forEach((station) => {
+    typeVisibleStations.forEach((station) => {
+      const on = activeStations.has(station.name);
       const li = document.createElement("li");
+      li.className = on ? "" : "off";
       li.innerHTML = `
+        <input type="checkbox" class="station-toggle" ${on ? "checked" : ""} aria-label="${station.name} 표시 여부" />
         <span class="dot" style="background:${TYPE_COLORS[station.type]}"></span>
         <span class="name">${station.name}</span>
         <span class="type">${station.type}</span>
       `;
+      const checkbox = li.querySelector(".station-toggle");
+      checkbox.addEventListener("click", (e) => e.stopPropagation());
+      checkbox.addEventListener("change", (e) => {
+        if (e.target.checked) activeStations.add(station.name);
+        else activeStations.delete(station.name);
+        li.classList.toggle("off", !e.target.checked);
+        setStationVisibility(station, stationVisible(station));
+        updateStationCount();
+      });
       li.addEventListener("click", () => {
         map.setView([station.lat, station.lng], 10, { animate: true });
-        markers.get(station.name).openPopup();
+        if (activeStations.has(station.name)) markers.get(station.name).openPopup();
       });
       list.appendChild(li);
     });
