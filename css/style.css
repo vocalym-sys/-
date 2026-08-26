@@ -62,9 +62,29 @@ html, body {
   flex: 1;
 }
 
-/* 무라벨 베이스 타일이 다소 옅어서 채도/명암을 살짝 보정 */
+/* 실제 타일의 해안선 디테일은 유지한 채 육지=크림/바다=옅은 파랑 2색으로 재매핑 */
 #map .leaflet-tile-pane {
-  filter: saturate(1.35) contrast(1.08) brightness(0.98);
+  filter: url(#duotone-korea);
+}
+
+.grid-label {
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #46647a;
+  white-space: nowrap;
+  text-shadow:
+    -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+    0 0 3px #fff;
+  pointer-events: none;
+}
+
+.grid-label-lat {
+  transform: translate(2px, -50%);
+}
+
+.grid-label-lng {
+  transform: translate(-50%, -16px);
 }
 
 .category-group {

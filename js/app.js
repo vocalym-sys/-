@@ -61,6 +61,56 @@
 
   pppRtkLayer.addTo(map);
 
+  // --- 위경도 1도 격자 ---
+  // 선은 기본 뷰보다 넉넉히 넓게, 라벨은 초기 화면(중심 36.2/127.8, 줌 7)
+  // 안쪽에 확실히 들어오는 위치에 고정 배치 (팬해도 선은 계속 보이지만
+  // 라벨은 다시 계산하지 않는 단순한 방식)
+  const GRID_COLOR = "#5a7c92";
+  const GRID_MIN_LAT = 28;
+  const GRID_MAX_LAT = 43;
+  const GRID_MIN_LNG = 119;
+  const GRID_MAX_LNG = 137;
+  const LABEL_LNG_FOR_LAT_ROWS = 122.9; // 위도 라벨을 배치할 경도(초기 뷰 서쪽 안쪽)
+  const LABEL_LAT_FOR_LNG_COLS = 32.8; // 경도 라벨을 배치할 위도(정수 위도와 겹치지 않는 값)
+
+  const gridLayer = L.layerGroup();
+
+  function addGridLabel(lat, lng, text, className) {
+    L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: "grid-label " + className,
+        html: text,
+        iconSize: [1, 1],
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(gridLayer);
+  }
+
+  for (let lat = GRID_MIN_LAT; lat <= GRID_MAX_LAT; lat++) {
+    L.polyline(
+      [
+        [lat, GRID_MIN_LNG],
+        [lat, GRID_MAX_LNG],
+      ],
+      { color: GRID_COLOR, weight: 1, opacity: 0.55, dashArray: "1 5", interactive: false }
+    ).addTo(gridLayer);
+    addGridLabel(lat, LABEL_LNG_FOR_LAT_ROWS, lat + "°N", "grid-label-lat");
+  }
+
+  for (let lng = GRID_MIN_LNG; lng <= GRID_MAX_LNG; lng++) {
+    L.polyline(
+      [
+        [GRID_MIN_LAT, lng],
+        [GRID_MAX_LAT, lng],
+      ],
+      { color: GRID_COLOR, weight: 1, opacity: 0.55, dashArray: "1 5", interactive: false }
+    ).addTo(gridLayer);
+    addGridLabel(LABEL_LAT_FOR_LNG_COLS, lng, lng + "°E", "grid-label-lng");
+  }
+
+  gridLayer.addTo(map);
+
   function dmsFromDecimal(deg) {
     const sign = deg < 0 ? -1 : 1;
     const abs = Math.abs(deg);
