@@ -62,6 +62,11 @@ html, body {
   flex: 1;
 }
 
+/* 무라벨 베이스 타일이 다소 옅어서 채도/명암을 살짝 보정 */
+#map .leaflet-tile-pane {
+  filter: saturate(1.35) contrast(1.08) brightness(0.98);
+}
+
 .filter-group {
   display: flex;
   flex-wrap: wrap;

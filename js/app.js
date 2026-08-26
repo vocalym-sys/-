@@ -4,10 +4,10 @@
     "내륙": "#c0392b",
   };
 
-  // 베이스 지도와 확연히 구별되는 코버리지 원 색상 (마커 색과는 별도)
+  // 베이스 지도와 구별되면서도 과하지 않은 코버리지 원 색상 (마커 색과는 별도)
   const COVERAGE_COLORS = {
-    "해양": "#ff6d00",
-    "내륙": "#8e24aa",
+    "해양": "#ff9142",
+    "내륙": "#ab47bc",
   };
 
   // 커버리지 확인용 반경: 해양기준국 100해리(NM), 내륙기준국 80km
@@ -74,10 +74,10 @@
     const circle = L.circle([station.lat, station.lng], {
       radius: COVERAGE_RADIUS_M[station.type] || 0,
       color: coverageColor,
-      weight: 2,
-      opacity: 0.9,
+      weight: 1.5,
+      opacity: 0.75,
       fillColor: coverageColor,
-      fillOpacity: 0.1,
+      fillOpacity: 0.07,
       dashArray: "8 5",
       interactive: false,
     }).addTo(map);
