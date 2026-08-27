@@ -48,18 +48,25 @@
   const PPP_RTK_COLOR = "#00897b";
 
   const pppRtkLayer = L.layerGroup();
-  const pppRtkStyle = {
+  L.polygon(PPP_RTK_ZONE, {
     color: PPP_RTK_COLOR,
-    weight: 1.5,
-    opacity: 0.85,
+    weight: 2,
+    opacity: 0.8,
     fillColor: PPP_RTK_COLOR,
-    fillOpacity: 0.18,
+    fillOpacity: 0.12,
     interactive: false,
-  };
+  }).addTo(pppRtkLayer);
 
-  L.polygon(PPP_RTK_ZONE, pppRtkStyle).addTo(pppRtkLayer);
-  PPP_RTK_EXTRA_ZONES.forEach((zone) => {
-    L.polygon(zone, pppRtkStyle).addTo(pppRtkLayer);
+  PPP_RTK_ISLANDS.forEach((island) => {
+    L.circle([island.lat, island.lng], {
+      radius: island.radiusKm * 1000,
+      color: PPP_RTK_COLOR,
+      weight: 2,
+      opacity: 0.8,
+      fillColor: PPP_RTK_COLOR,
+      fillOpacity: 0.12,
+      interactive: false,
+    }).addTo(pppRtkLayer);
   });
 
   pppRtkLayer.addTo(map);
