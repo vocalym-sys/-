@@ -57,10 +57,11 @@
     interactive: false,
   };
 
-  // 본토·제주·백령도/대청도 구역은 서로 겹치거나(제주) 대각선 회랑으로
-  // 이어붙여서(백령도) 하나로 합쳐진 폴리곤으로 그림. 육지 부분(본토/제주/
-  // 백령도/대청도 각각, 그리고 휴전선 부근에서 우리 구역과 겹치는 북한
-  // 육지 조각들)은 구멍(hole)으로 뚫어서 해상 구역만 채색.
+  // 본토·제주·서해 5도(백령도/대청도/소청도/연평도/우도) 구역은 서로
+  // 겹치거나(제주) NLL 모양 경계로 이어붙여서(서해 5도) 하나로 합쳐진
+  // 폴리곤으로 그림. 육지 부분(본토/제주/서해 5도 각각, 그리고 휴전선
+  // 부근에서 우리 구역과 겹치는 북한 육지 조각들)은 구멍(hole)으로
+  // 뚫어서 해상 구역만 채색.
   L.polygon(
     [
       PPP_RTK_ZONE,
@@ -68,6 +69,9 @@
       PPP_RTK_JEJU_HOLE,
       PPP_RTK_BAENGNYEONG_HOLE,
       PPP_RTK_DAECHEONG_HOLE,
+      PPP_RTK_YEONPYEONG_HOLE,
+      PPP_RTK_SOCHONG_HOLE,
+      PPP_RTK_UDO_HOLE,
       ...PPP_RTK_NORTH_HOLES,
     ],
     pppRtkStyle
