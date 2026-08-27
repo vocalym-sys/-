@@ -57,11 +57,19 @@
     interactive: false,
   };
 
-  // 본토 12해리 구역과 제주도 12해리 구역은 실제로 겹치는 범위라서(완도~거문도
-  // 인근 남해상) 하나로 합쳐진 폴리곤으로 그림. 육지 부분(본토/제주 각각)은
-  // 구멍(hole) 두 개로 뚫어서 해안 인근 바다만 채색.
+  // 본토·제주·백령도/대청도 구역은 서로 겹치거나(제주) 대각선 회랑으로
+  // 이어붙여서(백령도) 하나로 합쳐진 폴리곤으로 그림. 육지 부분(본토/제주/
+  // 백령도/대청도 각각, 그리고 휴전선 부근에서 우리 구역과 겹치는 북한
+  // 육지 조각들)은 구멍(hole)으로 뚫어서 해상 구역만 채색.
   L.polygon(
-    [PPP_RTK_ZONE, PPP_RTK_MAINLAND_HOLE, PPP_RTK_JEJU_HOLE],
+    [
+      PPP_RTK_ZONE,
+      PPP_RTK_MAINLAND_HOLE,
+      PPP_RTK_JEJU_HOLE,
+      PPP_RTK_BAENGNYEONG_HOLE,
+      PPP_RTK_DAECHEONG_HOLE,
+      ...PPP_RTK_NORTH_HOLES,
+    ],
     pppRtkStyle
   ).addTo(pppRtkLayer);
 
