@@ -25,13 +25,16 @@
     minZoom: 5,
   }).setView([36.2, 127.8], 7);
 
-  // 지명 라벨이 없는 일반 지도(CARTO Voyager, no labels)
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 19,
-  }).addTo(map);
+  // 지명 라벨이 없는 일반 지도. CARTO Voyager는 익명 요청 제한으로
+  // "API KEY REQUIRED" 워터마크가 뜨는 문제가 있어 Esri World Ocean
+  // Base(라벨 없음, 키 불필요)로 교체함.
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Tiles &copy; Esri &mdash; GEBCO, NOAA, National Geographic, Garmin, HERE",
+      maxZoom: 16,
+    }
+  ).addTo(map);
 
   const markers = new Map();
   const circles = new Map();
