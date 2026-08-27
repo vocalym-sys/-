@@ -48,24 +48,23 @@
   const PPP_RTK_COLOR = "#00897b";
 
   const pppRtkLayer = L.layerGroup();
-  L.polygon(PPP_RTK_ZONE, {
+  const pppRtkStyle = {
     color: PPP_RTK_COLOR,
     weight: 2,
     opacity: 0.8,
     fillColor: PPP_RTK_COLOR,
-    fillOpacity: 0.12,
+    fillOpacity: 0.3,
     interactive: false,
-  }).addTo(pppRtkLayer);
+  };
+
+  // 육지 부분은 구멍(hole)으로 뚫어서 해안 인근 바다만 채색
+  L.polygon([PPP_RTK_ZONE, PPP_RTK_MAINLAND_HOLE], pppRtkStyle).addTo(pppRtkLayer);
+  L.polygon([PPP_RTK_JEJU_ZONE, PPP_RTK_JEJU_HOLE], pppRtkStyle).addTo(pppRtkLayer);
 
   PPP_RTK_ISLANDS.forEach((island) => {
     L.circle([island.lat, island.lng], {
+      ...pppRtkStyle,
       radius: island.radiusKm * 1000,
-      color: PPP_RTK_COLOR,
-      weight: 2,
-      opacity: 0.8,
-      fillColor: PPP_RTK_COLOR,
-      fillOpacity: 0.12,
-      interactive: false,
     }).addTo(pppRtkLayer);
   });
 
