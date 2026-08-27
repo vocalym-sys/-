@@ -67,24 +67,32 @@ html, body {
   filter: url(#duotone-korea);
 }
 
+.graticule-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 450;
+}
+
 .grid-label {
+  position: absolute;
   font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
   font-size: 11px;
   font-weight: 600;
-  color: #46647a;
+  color: #2a4558;
   white-space: nowrap;
-  text-shadow:
-    -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
-    0 0 3px #fff;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 3px;
+  border-radius: 2px;
   pointer-events: none;
 }
 
 .grid-label-lat {
-  transform: translate(2px, -50%);
+  transform: translate(0, -50%);
 }
 
 .grid-label-lng {
-  transform: translate(-50%, -16px);
+  transform: translate(-50%, -100%);
 }
 
 .category-group {

@@ -16,7 +16,14 @@
     "내륙": 80 * 1000,
   };
 
-  const map = L.map("map", { zoomControl: true }).setView([36.2, 127.8], 7);
+  // 전세계가 아닌 한반도 중심 동북아시아 범위로 팬/줌 제한
+  const NE_ASIA_BOUNDS = L.latLngBounds([15, 105], [50, 150]);
+  const map = L.map("map", {
+    zoomControl: true,
+    maxBounds: NE_ASIA_BOUNDS,
+    maxBoundsViscosity: 1.0,
+    minZoom: 5,
+  }).setView([36.2, 127.8], 7);
 
   // 지명 라벨이 없는 일반 지도(CARTO Voyager, no labels)
   L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
@@ -62,30 +69,17 @@
   pppRtkLayer.addTo(map);
 
   // --- 위경도 1도 격자 ---
-  // 선은 기본 뷰보다 넉넉히 넓게, 라벨은 초기 화면(중심 36.2/127.8, 줌 7)
-  // 안쪽에 확실히 들어오는 위치에 고정 배치 (팬해도 선은 계속 보이지만
-  // 라벨은 다시 계산하지 않는 단순한 방식)
+  // 격자선은 지도 좌표계에 고정(팬/줌 시 자연스럽게 함께 움직임).
+  // 라벨은 지도가 아니라 "화면"의 좌측/하단 가장자리에 고정되도록
+  // move/zoom 이벤트마다 픽셀 위치를 다시 계산해서 그림.
   const GRID_COLOR = "#5a7c92";
-  const GRID_MIN_LAT = 28;
-  const GRID_MAX_LAT = 43;
-  const GRID_MIN_LNG = 119;
-  const GRID_MAX_LNG = 137;
-  const LABEL_LNG_FOR_LAT_ROWS = 122.9; // 위도 라벨을 배치할 경도(초기 뷰 서쪽 안쪽)
-  const LABEL_LAT_FOR_LNG_COLS = 32.8; // 경도 라벨을 배치할 위도(정수 위도와 겹치지 않는 값)
+  const GRID_MIN_LAT = 15;
+  const GRID_MAX_LAT = 50;
+  const GRID_MIN_LNG = 105;
+  const GRID_MAX_LNG = 150;
+  const LABEL_EDGE_PADDING = 4;
 
   const gridLayer = L.layerGroup();
-
-  function addGridLabel(lat, lng, text, className) {
-    L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: "grid-label " + className,
-        html: text,
-        iconSize: [1, 1],
-      }),
-      interactive: false,
-      keyboard: false,
-    }).addTo(gridLayer);
-  }
 
   for (let lat = GRID_MIN_LAT; lat <= GRID_MAX_LAT; lat++) {
     L.polyline(
@@ -95,7 +89,6 @@
       ],
       { color: GRID_COLOR, weight: 1, opacity: 0.55, dashArray: "1 5", interactive: false }
     ).addTo(gridLayer);
-    addGridLabel(lat, LABEL_LNG_FOR_LAT_ROWS, lat + "°N", "grid-label-lat");
   }
 
   for (let lng = GRID_MIN_LNG; lng <= GRID_MAX_LNG; lng++) {
@@ -106,10 +99,52 @@
       ],
       { color: GRID_COLOR, weight: 1, opacity: 0.55, dashArray: "1 5", interactive: false }
     ).addTo(gridLayer);
-    addGridLabel(LABEL_LAT_FOR_LNG_COLS, lng, lng + "°E", "grid-label-lng");
   }
 
   gridLayer.addTo(map);
+
+  const graticuleContainer = L.DomUtil.create("div", "graticule-labels", map.getContainer());
+  const graticuleLatLabels = [];
+  const graticuleLngLabels = [];
+
+  for (let lat = GRID_MIN_LAT; lat <= GRID_MAX_LAT; lat++) {
+    const el = L.DomUtil.create("div", "grid-label grid-label-lat", graticuleContainer);
+    el.textContent = lat + "°N";
+    graticuleLatLabels.push({ lat, el });
+  }
+
+  for (let lng = GRID_MIN_LNG; lng <= GRID_MAX_LNG; lng++) {
+    const el = L.DomUtil.create("div", "grid-label grid-label-lng", graticuleContainer);
+    el.textContent = lng + "°E";
+    graticuleLngLabels.push({ lng, el });
+  }
+
+  function updateGraticuleLabels() {
+    const size = map.getSize();
+    graticuleLatLabels.forEach(({ lat, el }) => {
+      const y = map.latLngToContainerPoint([lat, GRID_MIN_LNG]).y;
+      if (y < 0 || y > size.y) {
+        el.style.display = "none";
+        return;
+      }
+      el.style.display = "";
+      el.style.left = LABEL_EDGE_PADDING + "px";
+      el.style.top = y + "px";
+    });
+    graticuleLngLabels.forEach(({ lng, el }) => {
+      const x = map.latLngToContainerPoint([GRID_MIN_LAT, lng]).x;
+      if (x < 0 || x > size.x) {
+        el.style.display = "none";
+        return;
+      }
+      el.style.display = "";
+      el.style.top = size.y - LABEL_EDGE_PADDING + "px";
+      el.style.left = x + "px";
+    });
+  }
+
+  map.on("move zoom resize", updateGraticuleLabels);
+  updateGraticuleLabels();
 
   function dmsFromDecimal(deg) {
     const sign = deg < 0 ? -1 : 1;
