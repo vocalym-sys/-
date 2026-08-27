@@ -57,9 +57,13 @@
     interactive: false,
   };
 
-  // 육지 부분은 구멍(hole)으로 뚫어서 해안 인근 바다만 채색
-  L.polygon([PPP_RTK_ZONE, PPP_RTK_MAINLAND_HOLE], pppRtkStyle).addTo(pppRtkLayer);
-  L.polygon([PPP_RTK_JEJU_ZONE, PPP_RTK_JEJU_HOLE], pppRtkStyle).addTo(pppRtkLayer);
+  // 본토 12해리 구역과 제주도 12해리 구역은 실제로 겹치는 범위라서(완도~거문도
+  // 인근 남해상) 하나로 합쳐진 폴리곤으로 그림. 육지 부분(본토/제주 각각)은
+  // 구멍(hole) 두 개로 뚫어서 해안 인근 바다만 채색.
+  L.polygon(
+    [PPP_RTK_ZONE, PPP_RTK_MAINLAND_HOLE, PPP_RTK_JEJU_HOLE],
+    pppRtkStyle
+  ).addTo(pppRtkLayer);
 
   PPP_RTK_ISLANDS.forEach((island) => {
     L.circle([island.lat, island.lng], {
