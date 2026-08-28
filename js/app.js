@@ -495,6 +495,7 @@
       exitMeasureMode();
       return;
     }
+    if (pinMode) setPinMode(false);
     clearMeasurement();
     measureState.mode = mode;
     map.doubleClickZoom.disable();
@@ -511,12 +512,150 @@
     updateMeasureResult();
   }
 
+  // --- 좌표 검색 / 좌표 찍기 ---
+  const PIN_COLOR = "#d81b60";
+  let pinMode = false;
+  const pinMarkers = [];
+
+  function makePinIcon() {
+    return L.divIcon({
+      className: "pin-marker",
+      html: `<span></span>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+  }
+
+  function coordPopupHtml(lat, lng) {
+    return `
+      <div class="popup">
+        <h3>좌표</h3>
+        <table>
+          <tr><td>위도</td><td>${lat.toFixed(6)}° (${dmsFromDecimal(lat)})</td></tr>
+          <tr><td>경도</td><td>${lng.toFixed(6)}° (${dmsFromDecimal(lng)})</td></tr>
+        </table>
+        <button type="button" class="popup-remove-pin">이 핀 삭제</button>
+      </div>
+    `;
+  }
+
+  function addPinMarker(latlng) {
+    const marker = L.marker(latlng, { icon: makePinIcon() }).addTo(map);
+    marker.bindPopup(coordPopupHtml(latlng.lat, latlng.lng));
+    marker.on("popupopen", () => {
+      const el = marker.getPopup().getElement();
+      const btn = el && el.querySelector(".popup-remove-pin");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          map.removeLayer(marker);
+          const idx = pinMarkers.indexOf(marker);
+          if (idx !== -1) pinMarkers.splice(idx, 1);
+        });
+      }
+    });
+    marker.openPopup();
+    pinMarkers.push(marker);
+    return marker;
+  }
+
+  function clearPins() {
+    pinMarkers.forEach((m) => map.removeLayer(m));
+    pinMarkers.length = 0;
+  }
+
+  function setPinMode(on) {
+    pinMode = on;
+    if (pinMode) {
+      exitMeasureMode();
+      map.getContainer().style.cursor = "crosshair";
+    } else {
+      map.getContainer().style.cursor = "";
+    }
+    const btn = document.getElementById("coordPinBtn");
+    if (btn) btn.classList.toggle("active", pinMode);
+  }
+
+  // "위도, 경도" 또는 "위도 경도" 형식(십진도)만 지원
+  function parseCoordInput(text) {
+    const trimmed = text.trim();
+    if (!trimmed) return null;
+    const parts = trimmed.includes(",") ? trimmed.split(",") : trimmed.split(/\s+/);
+    if (parts.length !== 2) return null;
+    const lat = parseFloat(parts[0].trim());
+    const lng = parseFloat(parts[1].trim());
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+    return { lat, lng };
+  }
+
+  function handleCoordSearch() {
+    const input = document.getElementById("coordSearchInput");
+    const errorEl = document.getElementById("coordSearchError");
+    const parsed = parseCoordInput(input.value);
+    if (!parsed) {
+      errorEl.textContent = "형식이 올바르지 않습니다. 예: 37.5665, 126.9780";
+      return;
+    }
+    errorEl.textContent = "";
+    const latlng = L.latLng(parsed.lat, parsed.lng);
+    map.setView(latlng, Math.max(map.getZoom(), 10), { animate: true });
+    addPinMarker(latlng);
+  }
+
+  const CoordControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "measure-control coord-control");
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.disableScrollPropagation(container);
+
+      const searchRow = L.DomUtil.create("div", "coord-search-row", container);
+      const input = L.DomUtil.create("input", "coord-search-input", searchRow);
+      input.type = "text";
+      input.id = "coordSearchInput";
+      input.placeholder = "위도, 경도 (예: 37.5665, 126.9780)";
+      L.DomEvent.on(input, "keydown", (e) => {
+        if (e.key === "Enter") handleCoordSearch();
+      });
+
+      const searchBtn = L.DomUtil.create("button", "measure-btn", searchRow);
+      searchBtn.type = "button";
+      searchBtn.textContent = "이동";
+      L.DomEvent.on(searchBtn, "click", handleCoordSearch);
+
+      const errorEl = L.DomUtil.create("div", "coord-search-error", container);
+      errorEl.id = "coordSearchError";
+
+      const pinRow = L.DomUtil.create("div", "measure-buttons coord-pin-row", container);
+      const pinBtn = L.DomUtil.create("button", "measure-btn", pinRow);
+      pinBtn.id = "coordPinBtn";
+      pinBtn.type = "button";
+      pinBtn.textContent = "📍 좌표 찍기";
+      L.DomEvent.on(pinBtn, "click", () => setPinMode(!pinMode));
+
+      const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", pinRow);
+      clearBtn.type = "button";
+      clearBtn.textContent = "핀 지우기";
+      L.DomEvent.on(clearBtn, "click", clearPins);
+
+      return container;
+    },
+  });
+
+  map.addControl(new CoordControl());
+
   map.on("click", (e) => {
-    if (!measureState.mode) return;
-    addMeasurePoint(e.latlng);
+    if (measureState.mode) {
+      addMeasurePoint(e.latlng);
+      return;
+    }
+    if (pinMode) {
+      addPinMarker(e.latlng);
+    }
   });
   map.on("dblclick", () => {
     if (measureState.mode) exitMeasureMode();
+    if (pinMode) setPinMode(false);
   });
 
   const MeasureControl = L.Control.extend({
