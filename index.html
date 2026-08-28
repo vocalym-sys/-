@@ -22,11 +22,19 @@
           <span class="legend-swatch swatch-dgnss"></span>
           <span>DGNSS 서비스 범위</span>
         </label>
+        <div class="opacity-row">
+          <span>투명도</span>
+          <input type="range" id="dgnssOpacity" min="0" max="1" step="0.05" value="0.6" />
+        </div>
         <label class="category-toggle">
           <input type="checkbox" id="togglePppRtk" checked />
           <span class="legend-swatch swatch-ppprtk"></span>
           <span>센티미터급 서비스(PPP-RTK) 범위</span>
         </label>
+        <div class="opacity-row">
+          <span>투명도</span>
+          <input type="range" id="pppRtkOpacity" min="0" max="1" step="0.05" value="0.5" />
+        </div>
         <label class="category-toggle">
           <input type="checkbox" id="toggleBasepoints" checked />
           <span>영해기점(별표1) 23개소</span>

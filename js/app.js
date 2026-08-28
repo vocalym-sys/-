@@ -1,16 +1,15 @@
 (function () {
   // DGNSS는 해양/내륙 구분보다 "PPP-RTK와 구별되는 하나의 서비스"로
-  // 한눈에 읽히는 게 중요해서 해양/내륙 모두 같은 노란색 계열로 통일함
-  // (PPP-RTK 구역의 녹색과 뚜렷이 대비됨 — PPP_RTK_COLOR 참고).
-  const DGNSS_COLOR = "#f9a825";
-  const DGNSS_OUTLINE_COLOR = "#a66a00"; // 커버리지 원 경계선 — 같은 계열의 더 짙은 톤
+  // 한눈에 읽히는 게 중요해서 해양/내륙 모두 같은 색으로 통일함
+  // (PPP-RTK 구역의 붉은색과 뚜렷이 대비되도록 흰색 계열 — PPP_RTK_COLOR 참고).
+  const DGNSS_COLOR = "#ffffff";
+  const DGNSS_OUTLINE_COLOR = "#616161"; // 커버리지 원 경계선 — 흰색은 자체로 안 보여서 짙은 회색 사용
   const TYPE_COLORS = {
     "해양": DGNSS_COLOR,
     "내륙": DGNSS_COLOR,
   };
 
-  // 마커와 같은 색으로 채우되(옅은 불투명도로 커버리지 원임을 구분),
-  // 경계선만 DGNSS_OUTLINE_COLOR로 더 짙게
+  // 마커와 같은 색으로 채우되, 경계선만 DGNSS_OUTLINE_COLOR로 더 짙게
   const COVERAGE_COLORS = {
     "해양": DGNSS_COLOR,
     "내륙": DGNSS_COLOR,
@@ -55,15 +54,18 @@
   let pppRtkCategoryOn = true;
 
   // --- PPP-RTK(센티미터급) 서비스 구역 ---
-  // DGNSS(노란색 계열)와 뚜렷이 구별되도록 녹색 계열로 지정.
-  const PPP_RTK_COLOR = "#2e7d32";
-  const PPP_RTK_OUTLINE_COLOR = "#1b5e20"; // 경계선 — 같은 계열의 더 짙은 톤
+  // DGNSS(흰색)와 뚜렷이 구별되도록 붉은색 계열로 지정 (너무 새빨갛지
+  // 않은 톤).
+  const PPP_RTK_COLOR = "#c0392b";
+  const PPP_RTK_OUTLINE_COLOR = "#7b241c"; // 경계선 — 같은 계열의 더 짙은 톤
+  let pppRtkFillOpacity = 0.5;
+  let dgnssFillOpacity = 0.6;
 
   const pppRtkLayer = L.layerGroup();
   const pppRtkFillStyle = {
     stroke: false,
     fillColor: PPP_RTK_COLOR,
-    fillOpacity: 0.3,
+    fillOpacity: pppRtkFillOpacity,
     interactive: false,
   };
   const pppRtkOutlineStyle = {
@@ -88,7 +90,7 @@
   // 형태로 포함되어 있음(군사분계선 구간이 남한 북쪽 경계선과 겹쳐서
   // 발생한 것을 shapely buffer(0)로 위상학적으로 정리한 결과 — 별도
   // 구멍 폴리곤일 때와 채워지는 영역은 동일함).
-  L.polygon(
+  const pppRtkFillLayer = L.polygon(
     [
       PPP_RTK_ZONE,
       PPP_RTK_JEJU_HOLE,
@@ -108,22 +110,22 @@
   const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
   L.polyline(visibleOutline, pppRtkOutlineStyle).addTo(pppRtkLayer);
 
-  PPP_RTK_ISLANDS.forEach((island) => {
+  const pppRtkIslandLayers = PPP_RTK_ISLANDS.map((island) =>
     L.circle([island.lat, island.lng], {
       color: PPP_RTK_OUTLINE_COLOR,
       weight: 1.2,
       opacity: 0.85,
       fillColor: PPP_RTK_COLOR,
-      fillOpacity: 0.3,
+      fillOpacity: pppRtkFillOpacity,
       interactive: false,
       radius: island.radiusKm * 1000,
-    }).addTo(pppRtkLayer);
-  });
+    }).addTo(pppRtkLayer)
+  );
 
   pppRtkLayer.addTo(map);
 
   // --- 영해기점(별표1) 23개소 ---
-  // DGNSS(노란색 원 마커)·PPP-RTK(녹색 구역)와 구별되도록 보라색
+  // DGNSS(흰색 원 마커)·PPP-RTK(붉은색 구역)와 구별되도록 보라색
   // 마름모 심벌로 표시 (css/style.css .basepoint-marker 참고).
 
   function makeBasepointIcon() {
@@ -278,7 +280,7 @@
       weight: 1.2,
       opacity: 0.85,
       fillColor: coverageColor,
-      fillOpacity: 0.09,
+      fillOpacity: dgnssFillOpacity,
       interactive: false,
     }).addTo(map);
     circles.set(station.name, circle);
@@ -298,7 +300,9 @@
       const id = `filter-${type}`;
       const wrap = document.createElement("label");
       wrap.className = "filter-chip";
-      wrap.style.setProperty("--chip-color", TYPE_COLORS[type]);
+      // 흰색(DGNSS_COLOR)은 칩 테두리/글자색으로 쓰면 안 보이므로,
+      // 항상 잘 보이는 DGNSS_OUTLINE_COLOR로 칩 UI를 그림.
+      wrap.style.setProperty("--chip-color", DGNSS_OUTLINE_COLOR);
       wrap.innerHTML = `
         <input type="checkbox" id="${id}" checked />
         <span>${type}</span>
@@ -810,8 +814,26 @@
     });
   }
 
+  // --- 서비스 범위 투명도 조절 ---
+  function wireOpacityControls() {
+    const dgnssSlider = document.getElementById("dgnssOpacity");
+    const pppRtkSlider = document.getElementById("pppRtkOpacity");
+
+    dgnssSlider.addEventListener("input", (e) => {
+      dgnssFillOpacity = parseFloat(e.target.value);
+      circles.forEach((circle) => circle.setStyle({ fillOpacity: dgnssFillOpacity }));
+    });
+
+    pppRtkSlider.addEventListener("input", (e) => {
+      pppRtkFillOpacity = parseFloat(e.target.value);
+      pppRtkFillLayer.setStyle({ fillOpacity: pppRtkFillOpacity });
+      pppRtkIslandLayers.forEach((circle) => circle.setStyle({ fillOpacity: pppRtkFillOpacity }));
+    });
+  }
+
   renderTypeFilters();
   wireSelectAll();
   wireCategoryToggles();
+  wireOpacityControls();
   renderStationList();
 })();
