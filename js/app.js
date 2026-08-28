@@ -75,23 +75,30 @@
   // Leaflet은 폴리곤의 모든 링(외곽선 + 구멍)을 같은 색으로 테두리
   // 그리기 때문에, 채색용 폴리곤은 테두리 없이(stroke:false)만 그리고
   // 실제 경계선은 PPP_RTK_ZONE 외곽 좌표만 따로 폴리라인으로 그려서
-  // 해안선(육지 라인)에는 색이 들어가지 않도록 함.
+  // 해안선(육지 라인)에는 색이 들어가지 않도록 함. 본토(남한) 육지는
+  // 더 이상 별도 구멍이 아니라 PPP_RTK_ZONE 외곽선 자체에 슬릿(slit)
+  // 형태로 포함되어 있음(군사분계선 구간이 남한 북쪽 경계선과 겹쳐서
+  // 발생한 것을 shapely buffer(0)로 위상학적으로 정리한 결과 — 별도
+  // 구멍 폴리곤일 때와 채워지는 영역은 동일함).
   L.polygon(
     [
       PPP_RTK_ZONE,
-      PPP_RTK_MAINLAND_HOLE,
       PPP_RTK_JEJU_HOLE,
       PPP_RTK_BAENGNYEONG_HOLE,
       PPP_RTK_DAECHEONG_HOLE,
       PPP_RTK_YEONPYEONG_HOLE,
       PPP_RTK_SOCHONG_HOLE,
       PPP_RTK_UDO_HOLE,
-      ...PPP_RTK_NORTH_HOLES,
     ],
     pppRtkFillStyle
   ).addTo(pppRtkLayer);
 
-  L.polygon(PPP_RTK_ZONE, pppRtkOutlineStyle).addTo(pppRtkLayer);
+  // PPP_RTK_INVISIBLE_RANGE 구간(한강하류~군사분계선 동쪽끝, 내륙이라
+  // 실제 서비스 구역 경계가 아님)만 제외하고 나머지 외곽선을 하나의
+  // 열린 폴리라인으로 이어 그림.
+  const [invisibleStart, invisibleEnd] = PPP_RTK_INVISIBLE_RANGE;
+  const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
+  L.polyline(visibleOutline, pppRtkOutlineStyle).addTo(pppRtkLayer);
 
   PPP_RTK_ISLANDS.forEach((island) => {
     L.circle([island.lat, island.lng], {
