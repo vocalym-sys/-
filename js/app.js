@@ -25,18 +25,18 @@
     minZoom: 5,
   }).setView([36.2, 127.8], 7);
 
-  // 구글어스류 지형도 느낌(음영기복 + 자연스러운 초록/갈색 채색)의 베이스맵.
-  // NatGeo World Map은 지명·도로가 타일 이미지에 그대로 박혀 있어서
-  // CSS로 지울 수 없었음 — Esri World Physical Map(Natural Earth 지형
-  // 음영 기반, 지명/도로 자체가 없는 데이터셋)으로 교체함. 원본은 줌
-  // 8까지만 있어서 그 이상은 maxNativeZoom으로 확대 표시(다소 흐려지지만
-  // 지명/도로가 나타날 일은 없음).
+  // 구글어스류 지형/위성 느낌의 베이스맵. NatGeo World Map은 지명·도로가
+  // 타일 이미지에 박혀 있어 CSS로 못 지웠고, World Physical Map은
+  // 지명/도로는 없지만 한반도 지역은 원본 해상도가 줌 8까지뿐이라 그
+  // 이상은 흐려졌음. Esri World Imagery(실제 위성사진, 구글어스
+  // 기본 화면과 동일한 방식)로 교체 — 위성사진 자체에는 지명/도로
+  // 텍스트가 없고, 한반도 지역도 줌 17+까지 실제 고해상도 데이터가
+  // 있어 확대해도 흐려지지 않음.
   L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
-      attribution: "Tiles &copy; Esri &mdash; US National Park Service",
+      attribution: "Tiles &copy; Esri &mdash; Esri, Vantor, Earthstar Geographics, and the GIS User Community",
       maxZoom: 16,
-      maxNativeZoom: 8,
     }
   ).addTo(map);
 
