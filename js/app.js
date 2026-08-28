@@ -4,9 +4,10 @@
   // (PPP-RTK 구역의 붉은색과 뚜렷이 대비되도록 흰색 계열 — PPP_RTK_COLOR 참고).
   const DGNSS_COLOR = "#ffffff";
   const DGNSS_OUTLINE_COLOR = "#616161"; // 커버리지 원 경계선 — 흰색은 자체로 안 보여서 짙은 회색 사용
+  const MARKER_COLOR = "#1565c0"; // 기준국 심벌(마커) 전용 색 — 서비스 범위(흰색)와는 별도
   const TYPE_COLORS = {
-    "해양": DGNSS_COLOR,
-    "내륙": DGNSS_COLOR,
+    "해양": MARKER_COLOR,
+    "내륙": MARKER_COLOR,
   };
 
   // 마커와 같은 색으로 채우되, 경계선만 DGNSS_OUTLINE_COLOR로 더 짙게
@@ -70,7 +71,7 @@
   };
   const pppRtkOutlineStyle = {
     color: PPP_RTK_OUTLINE_COLOR,
-    weight: 1.2,
+    weight: 0.6,
     opacity: 0.85,
     fill: false,
     interactive: false,
@@ -113,7 +114,7 @@
   const pppRtkIslandLayers = PPP_RTK_ISLANDS.map((island) =>
     L.circle([island.lat, island.lng], {
       color: PPP_RTK_OUTLINE_COLOR,
-      weight: 1.2,
+      weight: 0.6,
       opacity: 0.85,
       fillColor: PPP_RTK_COLOR,
       fillOpacity: pppRtkFillOpacity,
@@ -132,8 +133,8 @@
     return L.divIcon({
       className: "basepoint-marker",
       html: `<span></span>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
+      iconSize: [8, 8],
+      iconAnchor: [4, 4],
     });
   }
 
@@ -250,8 +251,8 @@
     return L.divIcon({
       className: "station-marker",
       html: `<span style="background:${color}"></span>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
+      iconSize: [8, 8],
+      iconAnchor: [4, 4],
     });
   }
 
@@ -277,7 +278,7 @@
     const circle = L.circle([station.lat, station.lng], {
       radius: COVERAGE_RADIUS_M[station.type] || 0,
       color: DGNSS_OUTLINE_COLOR,
-      weight: 1.2,
+      weight: 0.6,
       opacity: 0.85,
       fillColor: coverageColor,
       fillOpacity: dgnssFillOpacity,
@@ -300,9 +301,7 @@
       const id = `filter-${type}`;
       const wrap = document.createElement("label");
       wrap.className = "filter-chip";
-      // 흰색(DGNSS_COLOR)은 칩 테두리/글자색으로 쓰면 안 보이므로,
-      // 항상 잘 보이는 DGNSS_OUTLINE_COLOR로 칩 UI를 그림.
-      wrap.style.setProperty("--chip-color", DGNSS_OUTLINE_COLOR);
+      wrap.style.setProperty("--chip-color", TYPE_COLORS[type]);
       wrap.innerHTML = `
         <input type="checkbox" id="${id}" checked />
         <span>${type}</span>
@@ -692,48 +691,44 @@
     addPinMarker(latlng);
   }
 
-  const CoordControl = L.Control.extend({
-    options: { position: "topright" },
-    onAdd: function () {
-      const container = L.DomUtil.create("div", "measure-control coord-control");
-      L.DomEvent.disableClickPropagation(container);
-      L.DomEvent.disableScrollPropagation(container);
+  // 좌표 검색/찍기와 거리·면적 측정 도구는 지도 위에 겹쳐 그리면 지도
+  // 확인 시야를 가리므로, Leaflet 컨트롤이 아니라 지도 레이어 밖의
+  // 상단 툴바(#toolbar, index.html)에 일반 DOM으로 직접 그림.
+  function buildCoordToolbar() {
+    const container = document.getElementById("coordToolbar");
 
-      const searchRow = L.DomUtil.create("div", "coord-search-row", container);
-      const input = L.DomUtil.create("input", "coord-search-input", searchRow);
-      input.type = "text";
-      input.id = "coordSearchInput";
-      input.placeholder = "37-33-59.4N, 126-58-40.8E";
-      input.title = "도/도분/도분초 단위 모두 가능. 예: 37.5665, 126.9780 / 37-33-59.4N, 126-58-40.8E";
-      L.DomEvent.on(input, "keydown", (e) => {
-        if (e.key === "Enter") handleCoordSearch();
-      });
+    const searchRow = L.DomUtil.create("div", "coord-search-row", container);
+    const input = L.DomUtil.create("input", "coord-search-input", searchRow);
+    input.type = "text";
+    input.id = "coordSearchInput";
+    input.placeholder = "37-33-59.4N, 126-58-40.8E";
+    input.title = "도/도분/도분초 단위 모두 가능. 예: 37.5665, 126.9780 / 37-33-59.4N, 126-58-40.8E";
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleCoordSearch();
+    });
 
-      const searchBtn = L.DomUtil.create("button", "measure-btn", searchRow);
-      searchBtn.type = "button";
-      searchBtn.textContent = "이동";
-      L.DomEvent.on(searchBtn, "click", handleCoordSearch);
+    const searchBtn = L.DomUtil.create("button", "measure-btn", searchRow);
+    searchBtn.type = "button";
+    searchBtn.textContent = "이동";
+    searchBtn.addEventListener("click", handleCoordSearch);
 
-      const errorEl = L.DomUtil.create("div", "coord-search-error", container);
-      errorEl.id = "coordSearchError";
+    const errorEl = L.DomUtil.create("div", "coord-search-error", container);
+    errorEl.id = "coordSearchError";
 
-      const pinRow = L.DomUtil.create("div", "measure-buttons coord-pin-row", container);
-      const pinBtn = L.DomUtil.create("button", "measure-btn", pinRow);
-      pinBtn.id = "coordPinBtn";
-      pinBtn.type = "button";
-      pinBtn.textContent = "📍 좌표 찍기";
-      L.DomEvent.on(pinBtn, "click", () => setPinMode(!pinMode));
+    const pinRow = L.DomUtil.create("div", "measure-buttons coord-pin-row", container);
+    const pinBtn = L.DomUtil.create("button", "measure-btn", pinRow);
+    pinBtn.id = "coordPinBtn";
+    pinBtn.type = "button";
+    pinBtn.textContent = "📍 좌표 찍기";
+    pinBtn.addEventListener("click", () => setPinMode(!pinMode));
 
-      const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", pinRow);
-      clearBtn.type = "button";
-      clearBtn.textContent = "핀 지우기";
-      L.DomEvent.on(clearBtn, "click", clearPins);
+    const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", pinRow);
+    clearBtn.type = "button";
+    clearBtn.textContent = "핀 지우기";
+    clearBtn.addEventListener("click", clearPins);
+  }
 
-      return container;
-    },
-  });
-
-  map.addControl(new CoordControl());
+  buildCoordToolbar();
 
   map.on("click", (e) => {
     if (measureState.mode) {
@@ -749,40 +744,33 @@
     if (pinMode) setPinMode(false);
   });
 
-  const MeasureControl = L.Control.extend({
-    options: { position: "topright" },
-    onAdd: function () {
-      const container = L.DomUtil.create("div", "measure-control");
-      L.DomEvent.disableClickPropagation(container);
-      L.DomEvent.disableScrollPropagation(container);
+  function buildMeasureToolbar() {
+    const container = document.getElementById("measureToolbar");
 
-      const buttons = L.DomUtil.create("div", "measure-buttons", container);
+    const buttons = L.DomUtil.create("div", "measure-buttons", container);
 
-      const distBtn = L.DomUtil.create("button", "measure-btn", buttons);
-      distBtn.id = "measureDistanceBtn";
-      distBtn.type = "button";
-      distBtn.textContent = "📏 거리 측정";
-      L.DomEvent.on(distBtn, "click", () => setMeasureMode("distance"));
+    const distBtn = L.DomUtil.create("button", "measure-btn", buttons);
+    distBtn.id = "measureDistanceBtn";
+    distBtn.type = "button";
+    distBtn.textContent = "📏 거리 측정";
+    distBtn.addEventListener("click", () => setMeasureMode("distance"));
 
-      const areaBtn = L.DomUtil.create("button", "measure-btn", buttons);
-      areaBtn.id = "measureAreaBtn";
-      areaBtn.type = "button";
-      areaBtn.textContent = "▱ 면적 측정";
-      L.DomEvent.on(areaBtn, "click", () => setMeasureMode("area"));
+    const areaBtn = L.DomUtil.create("button", "measure-btn", buttons);
+    areaBtn.id = "measureAreaBtn";
+    areaBtn.type = "button";
+    areaBtn.textContent = "▱ 면적 측정";
+    areaBtn.addEventListener("click", () => setMeasureMode("area"));
 
-      const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", buttons);
-      clearBtn.type = "button";
-      clearBtn.textContent = "초기화";
-      L.DomEvent.on(clearBtn, "click", () => clearMeasurement());
+    const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", buttons);
+    clearBtn.type = "button";
+    clearBtn.textContent = "초기화";
+    clearBtn.addEventListener("click", () => clearMeasurement());
 
-      const result = L.DomUtil.create("div", "measure-result", container);
-      result.id = "measureResult";
+    const result = L.DomUtil.create("div", "measure-result", container);
+    result.id = "measureResult";
+  }
 
-      return container;
-    },
-  });
-
-  map.addControl(new MeasureControl());
+  buildMeasureToolbar();
 
   function wireCategoryToggles() {
     const dgnssToggle = document.getElementById("toggleDgnss");
@@ -818,14 +806,22 @@
   function wireOpacityControls() {
     const dgnssSlider = document.getElementById("dgnssOpacity");
     const pppRtkSlider = document.getElementById("pppRtkOpacity");
+    const dgnssValueEl = document.getElementById("dgnssOpacityValue");
+    const pppRtkValueEl = document.getElementById("pppRtkOpacityValue");
+
+    const toPercent = (v) => `${Math.round(v * 100)}%`;
+    dgnssValueEl.textContent = toPercent(dgnssFillOpacity);
+    pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
 
     dgnssSlider.addEventListener("input", (e) => {
       dgnssFillOpacity = parseFloat(e.target.value);
+      dgnssValueEl.textContent = toPercent(dgnssFillOpacity);
       circles.forEach((circle) => circle.setStyle({ fillOpacity: dgnssFillOpacity }));
     });
 
     pppRtkSlider.addEventListener("input", (e) => {
       pppRtkFillOpacity = parseFloat(e.target.value);
+      pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
       pppRtkFillLayer.setStyle({ fillOpacity: pppRtkFillOpacity });
       pppRtkIslandLayers.forEach((circle) => circle.setStyle({ fillOpacity: pppRtkFillOpacity }));
     });

@@ -14,6 +14,11 @@
     <p class="subtitle">DGNSS 기준국 및 센티미터급 서비스(PPP-RTK) 구역</p>
   </header>
 
+  <div id="toolbar">
+    <div class="toolbar-group" id="coordToolbar"></div>
+    <div class="toolbar-group" id="measureToolbar"></div>
+  </div>
+
   <div id="layout">
     <aside id="sidebar">
       <div class="category-group" id="categoryToggles">
@@ -25,6 +30,7 @@
         <div class="opacity-row">
           <span>투명도</span>
           <input type="range" id="dgnssOpacity" min="0" max="1" step="0.05" value="0.6" />
+          <span class="opacity-value" id="dgnssOpacityValue">60%</span>
         </div>
         <label class="category-toggle">
           <input type="checkbox" id="togglePppRtk" checked />
@@ -34,6 +40,7 @@
         <div class="opacity-row">
           <span>투명도</span>
           <input type="range" id="pppRtkOpacity" min="0" max="1" step="0.05" value="0.5" />
+          <span class="opacity-value" id="pppRtkOpacityValue">50%</span>
         </div>
         <label class="category-toggle">
           <input type="checkbox" id="toggleBasepoints" checked />

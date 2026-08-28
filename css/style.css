@@ -270,13 +270,20 @@ html, body {
   color: var(--accent);
 }
 
-.measure-control {
+#toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 8px 20px;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-  padding: 6px;
-  font-family: inherit;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .measure-buttons {
@@ -317,10 +324,6 @@ html, body {
   min-height: 1em;
 }
 
-.coord-control {
-  margin-top: 8px;
-}
-
 .coord-search-row {
   display: flex;
   gap: 4px;
@@ -359,11 +362,11 @@ html, body {
 
 .basepoint-marker span {
   display: block;
-  width: 11px;
-  height: 11px;
-  margin: 2.5px;
+  width: 6px;
+  height: 6px;
+  margin: 1px;
   background: #8e24aa;
-  border: 2px solid #4a0072;
+  border: 1px solid #4a0072;
   transform: rotate(45deg);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
 }
@@ -385,10 +388,10 @@ html, body {
 
 .station-marker span {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  border: 2px solid #424242;
+  border: 1px solid #424242;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
