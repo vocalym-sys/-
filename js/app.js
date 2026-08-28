@@ -59,8 +59,14 @@
   // 않은 톤).
   const PPP_RTK_COLOR = "#c0392b";
   const PPP_RTK_OUTLINE_COLOR = "#7b241c"; // 경계선 — 같은 계열의 더 짙은 톤
-  let pppRtkFillOpacity = 0.5;
-  let dgnssFillOpacity = 0.6;
+
+  // 투명도 슬라이더는 항상 50%(중앙)에서 시작하되, 그 지점이 각 서비스의
+  // 실제 기본 투명도(DGNSS 20%, PPP-RTK 35%)가 되도록 스케일을 둠
+  // (슬라이더 위치 0.5 * SCALE = 기본 투명도).
+  const DGNSS_OPACITY_SCALE = 0.4; // 슬라이더 0.5 -> 20%
+  const PPP_RTK_OPACITY_SCALE = 0.7; // 슬라이더 0.5 -> 35%
+  let pppRtkFillOpacity = 0.5 * PPP_RTK_OPACITY_SCALE;
+  let dgnssFillOpacity = 0.5 * DGNSS_OPACITY_SCALE;
 
   const pppRtkLayer = L.layerGroup();
   const pppRtkFillStyle = {
@@ -100,6 +106,7 @@
       PPP_RTK_YEONPYEONG_HOLE,
       PPP_RTK_SOCHONG_HOLE,
       PPP_RTK_UDO_HOLE,
+      ...PPP_RTK_SW_ISLAND_HOLES,
     ],
     pppRtkFillStyle
   ).addTo(pppRtkLayer);
@@ -814,13 +821,13 @@
     pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
 
     dgnssSlider.addEventListener("input", (e) => {
-      dgnssFillOpacity = parseFloat(e.target.value);
+      dgnssFillOpacity = parseFloat(e.target.value) * DGNSS_OPACITY_SCALE;
       dgnssValueEl.textContent = toPercent(dgnssFillOpacity);
       circles.forEach((circle) => circle.setStyle({ fillOpacity: dgnssFillOpacity }));
     });
 
     pppRtkSlider.addEventListener("input", (e) => {
-      pppRtkFillOpacity = parseFloat(e.target.value);
+      pppRtkFillOpacity = parseFloat(e.target.value) * PPP_RTK_OPACITY_SCALE;
       pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
       pppRtkFillLayer.setStyle({ fillOpacity: pppRtkFillOpacity });
       pppRtkIslandLayers.forEach((circle) => circle.setStyle({ fillOpacity: pppRtkFillOpacity }));

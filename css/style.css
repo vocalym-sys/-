@@ -125,6 +125,13 @@ html, body {
   height: 14px;
 }
 
+.opacity-value {
+  min-width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
 .legend-swatch {
   display: inline-block;
   width: 12px;
