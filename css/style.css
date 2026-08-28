@@ -119,11 +119,11 @@ html, body {
 }
 
 .swatch-dgnss {
-  background: #1565c0;
+  background: #f9a825;
 }
 
 .swatch-ppprtk {
-  background: #e65100;
+  background: #2e7d32;
 }
 
 .category-toggle input {
@@ -345,8 +345,8 @@ html, body {
   width: 11px;
   height: 11px;
   margin: 2.5px;
-  background: #fdd835;
-  border: 2px solid #4e3f00;
+  background: #8e24aa;
+  border: 2px solid #4a0072;
   transform: rotate(45deg);
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
 }
