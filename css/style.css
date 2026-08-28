@@ -324,6 +324,17 @@ html, body {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
+.basepoint-marker span {
+  display: block;
+  width: 11px;
+  height: 11px;
+  margin: 2.5px;
+  background: #fdd835;
+  border: 2px solid #4e3f00;
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
 .popup-remove-pin {
   margin-top: 8px;
   border: 1px solid var(--border);

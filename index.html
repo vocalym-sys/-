@@ -25,6 +25,10 @@
           <input type="checkbox" id="togglePppRtk" checked />
           <span>센티미터급 서비스(PPP-RTK) 범위</span>
         </label>
+        <label class="category-toggle">
+          <input type="checkbox" id="toggleBasepoints" checked />
+          <span>영해기점(별표1) 23개소</span>
+        </label>
       </div>
 
       <div id="dgnssPanel">
@@ -41,7 +45,8 @@
         DGNSS 출처: <a href="https://www.nmpnt.go.kr/home/sub.do?menukey=4810" target="_blank" rel="noopener">국립해양측위정보원 &gt; 사업소개 &gt; 위성항법보정시스템 &gt; 중파기반서비스 &gt; 좌표현황</a><br>
         DGNSS 커버리지 반경: 해양 100해리(185.2km), 내륙 80km (점선원, 확인용 추정치)<br>
         PPP-RTK 구역: 영해 및 접속수역법 시행령 별표1(직선기선 23개 기점)·별표2(대한해협 특례)의
-        공식 좌표를 기준으로 계산한 영해(12해리, 대한해협 3해리) 경계
+        공식 좌표를 기준으로 계산한 영해(12해리, 대한해협 3해리) 경계<br>
+        영해기점(노란 마름모): 별표1 직선기선 23개 기점 좌표(국립해양박물관 해양조사보고서 1권, 2017)
       </div>
     </aside>
 
@@ -52,6 +57,7 @@
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="js/stations.js"></script>
 <script src="js/ppp-rtk.js"></script>
+<script src="js/basepoints.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

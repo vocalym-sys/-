@@ -107,6 +107,39 @@
 
   pppRtkLayer.addTo(map);
 
+  // --- 영해기점(별표1) 23개소 ---
+  // 기준국 마커(원, 파랑/빨강)와 구별되도록 노란 마름모 심벌로 표시.
+  const BASEPOINT_COLOR = "#fdd835";
+
+  function makeBasepointIcon() {
+    return L.divIcon({
+      className: "basepoint-marker",
+      html: `<span></span>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+  }
+
+  function basepointPopupHtml(point) {
+    return `
+      <div class="popup">
+        <h3>${point.no}. ${point.name} <span class="badge">영해기점</span></h3>
+        <table>
+          <tr><td>위도</td><td>${point.lat.toFixed(6)}° (${dmsFromDecimal(point.lat)})</td></tr>
+          <tr><td>경도</td><td>${point.lng.toFixed(6)}° (${dmsFromDecimal(point.lng)})</td></tr>
+        </table>
+      </div>
+    `;
+  }
+
+  const basepointsLayer = L.layerGroup();
+  BASEPOINTS.forEach((point) => {
+    L.marker([point.lat, point.lng], { icon: makeBasepointIcon() })
+      .bindPopup(basepointPopupHtml(point))
+      .addTo(basepointsLayer);
+  });
+  basepointsLayer.addTo(map);
+
   // --- 위경도 1도 격자 ---
   // 격자선은 지도 좌표계에 고정(팬/줌 시 자연스럽게 함께 움직임).
   // 라벨은 지도가 아니라 "화면"의 좌측/하단 가장자리에 고정되도록
@@ -575,15 +608,54 @@
     if (btn) btn.classList.toggle("active", pinMode);
   }
 
-  // "위도, 경도" 또는 "위도 경도" 형식(십진도)만 지원
+  // 좌표 한쪽(위도 또는 경도)을 도/도분/도분초 어떤 단위로 입력해도 파싱.
+  // 구분자는 "-", 공백, ":", "°", "'", '"' 아무거나 섞어써도 되고, 반구
+  // 문자(N/S/E/W)는 있어도 없어도 됨. 예: "37.5665", "37-33.99N",
+  // "37-33-59.4N", "37 33 59.4 N".
+  function parseOneCoord(raw) {
+    if (typeof raw !== "string") return null;
+    let s = raw.trim();
+    if (!s) return null;
+    let hemisphere = null;
+    const hemisMatch = s.match(/[NSEW]/i);
+    if (hemisMatch) {
+      hemisphere = hemisMatch[0].toUpperCase();
+      s = s.replace(/[NSEW]/gi, " ");
+    }
+    const negative = !hemisphere && s.trim().startsWith("-");
+    const nums = s.match(/\d+(?:\.\d+)?/g);
+    if (!nums || nums.length === 0 || nums.length > 3) return null;
+    let value = parseFloat(nums[0]);
+    if (nums.length >= 2) value += parseFloat(nums[1]) / 60;
+    if (nums.length >= 3) value += parseFloat(nums[2]) / 3600;
+    if (hemisphere === "S" || hemisphere === "W" || negative) value = -value;
+    return value;
+  }
+
+  // "위도, 경도" 형식(콤마 구분 우선, 없으면 반구 문자 뒤 또는 공백 2개
+  // 토큰으로 분리). 위도/경도 각각 도·도분·도분초 단위 아무거나 지원.
   function parseCoordInput(text) {
     const trimmed = text.trim();
     if (!trimmed) return null;
-    const parts = trimmed.includes(",") ? trimmed.split(",") : trimmed.split(/\s+/);
-    if (parts.length !== 2) return null;
-    const lat = parseFloat(parts[0].trim());
-    const lng = parseFloat(parts[1].trim());
-    if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+    let latRaw, lngRaw;
+    if (trimmed.includes(",")) {
+      const idx = trimmed.indexOf(",");
+      latRaw = trimmed.slice(0, idx);
+      lngRaw = trimmed.slice(idx + 1);
+    } else {
+      const hemisSplit = trimmed.match(/^(.*?[NSns])\s*(.+)$/);
+      if (hemisSplit) {
+        latRaw = hemisSplit[1];
+        lngRaw = hemisSplit[2];
+      } else {
+        const parts = trimmed.split(/\s+/);
+        if (parts.length !== 2) return null;
+        [latRaw, lngRaw] = parts;
+      }
+    }
+    const lat = parseOneCoord(latRaw);
+    const lng = parseOneCoord(lngRaw);
+    if (lat === null || lng === null || Number.isNaN(lat) || Number.isNaN(lng)) return null;
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
     return { lat, lng };
   }
@@ -593,7 +665,7 @@
     const errorEl = document.getElementById("coordSearchError");
     const parsed = parseCoordInput(input.value);
     if (!parsed) {
-      errorEl.textContent = "형식이 올바르지 않습니다. 예: 37.5665, 126.9780";
+      errorEl.textContent = "형식이 올바르지 않습니다. 예: 37.5665, 126.9780 / 37-33-59.4N, 126-58-40.8E";
       return;
     }
     errorEl.textContent = "";
@@ -613,7 +685,8 @@
       const input = L.DomUtil.create("input", "coord-search-input", searchRow);
       input.type = "text";
       input.id = "coordSearchInput";
-      input.placeholder = "위도, 경도 (예: 37.5665, 126.9780)";
+      input.placeholder = "37-33-59.4N, 126-58-40.8E";
+      input.title = "도/도분/도분초 단위 모두 가능. 예: 37.5665, 126.9780 / 37-33-59.4N, 126-58-40.8E";
       L.DomEvent.on(input, "keydown", (e) => {
         if (e.key === "Enter") handleCoordSearch();
       });
@@ -696,6 +769,7 @@
   function wireCategoryToggles() {
     const dgnssToggle = document.getElementById("toggleDgnss");
     const pppRtkToggle = document.getElementById("togglePppRtk");
+    const basepointsToggle = document.getElementById("toggleBasepoints");
     const dgnssPanel = document.getElementById("dgnssPanel");
 
     dgnssToggle.addEventListener("change", (e) => {
@@ -710,6 +784,14 @@
         pppRtkLayer.addTo(map);
       } else {
         map.removeLayer(pppRtkLayer);
+      }
+    });
+
+    basepointsToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        basepointsLayer.addTo(map);
+      } else {
+        map.removeLayer(basepointsLayer);
       }
     });
   }
