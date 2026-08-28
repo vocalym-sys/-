@@ -1,13 +1,17 @@
 (function () {
+  // DGNSS는 해양/내륙 구분보다 "PPP-RTK와 구별되는 하나의 서비스"로
+  // 한눈에 읽히는 게 중요해서 해양/내륙 모두 같은 파란색 계열로 통일함
+  // (PPP-RTK 구역의 주황색과 뚜렷이 대비됨 — PPP_RTK_COLOR 참고).
+  const DGNSS_COLOR = "#1565c0";
   const TYPE_COLORS = {
-    "해양": "#0f6fb3",
-    "내륙": "#c0392b",
+    "해양": DGNSS_COLOR,
+    "내륙": DGNSS_COLOR,
   };
 
-  // 베이스 지도와 구별되면서도 과하지 않은 코버리지 원 색상 (마커 색과는 별도)
+  // 마커보다 옅은 톤으로 커버리지 원임을 구분하되 같은 파란색 계열 유지
   const COVERAGE_COLORS = {
-    "해양": "#fb7318",
-    "내륙": "#9c2fb0",
+    "해양": "#42a5f5",
+    "내륙": "#42a5f5",
   };
 
   // 커버리지 확인용 반경: 해양기준국 100해리(NM), 내륙기준국 80km
@@ -49,7 +53,8 @@
   let pppRtkCategoryOn = true;
 
   // --- PPP-RTK(센티미터급) 서비스 구역 ---
-  const PPP_RTK_COLOR = "#00897b";
+  // DGNSS(파란색 계열)와 뚜렷이 구별되도록 보색 관계인 주황색 계열로 지정.
+  const PPP_RTK_COLOR = "#e65100";
 
   const pppRtkLayer = L.layerGroup();
   const pppRtkFillStyle = {
