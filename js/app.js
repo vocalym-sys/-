@@ -98,17 +98,7 @@
   // 발생한 것을 shapely buffer(0)로 위상학적으로 정리한 결과 — 별도
   // 구멍 폴리곤일 때와 채워지는 영역은 동일함).
   const pppRtkFillLayer = L.polygon(
-    [
-      PPP_RTK_ZONE,
-      PPP_RTK_JEJU_HOLE,
-      PPP_RTK_BAENGNYEONG_HOLE,
-      PPP_RTK_DAECHEONG_HOLE,
-      PPP_RTK_YEONPYEONG_HOLE,
-      PPP_RTK_SOCHONG_HOLE,
-      PPP_RTK_UDO_HOLE,
-      ...PPP_RTK_SW_ISLAND_HOLES,
-      ...PPP_RTK_MINOR_ISLAND_HOLES,
-    ],
+    [PPP_RTK_ZONE, ...PPP_RTK_GSHHG_ISLAND_HOLES],
     pppRtkFillStyle
   ).addTo(pppRtkLayer);
 
