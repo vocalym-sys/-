@@ -107,6 +107,7 @@
       PPP_RTK_SOCHONG_HOLE,
       PPP_RTK_UDO_HOLE,
       ...PPP_RTK_SW_ISLAND_HOLES,
+      ...PPP_RTK_MINOR_ISLAND_HOLES,
     ],
     pppRtkFillStyle
   ).addTo(pppRtkLayer);
@@ -816,19 +817,24 @@
     const dgnssValueEl = document.getElementById("dgnssOpacityValue");
     const pppRtkValueEl = document.getElementById("pppRtkOpacityValue");
 
-    const toPercent = (v) => `${Math.round(v * 100)}%`;
-    dgnssValueEl.textContent = toPercent(dgnssFillOpacity);
-    pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
+    // 화면에는 슬라이더 자체의 위치(%)를 그대로 보여주고(기본 50%),
+    // 실제 적용되는 투명도는 DGNSS_OPACITY_SCALE/PPP_RTK_OPACITY_SCALE로
+    // 축소해서 적용함 — 즉 슬라이더 50%가 곧 "기본값"임.
+    const toPercent = (sliderValue) => `${Math.round(sliderValue * 100)}%`;
+    dgnssValueEl.textContent = toPercent(parseFloat(dgnssSlider.value));
+    pppRtkValueEl.textContent = toPercent(parseFloat(pppRtkSlider.value));
 
     dgnssSlider.addEventListener("input", (e) => {
-      dgnssFillOpacity = parseFloat(e.target.value) * DGNSS_OPACITY_SCALE;
-      dgnssValueEl.textContent = toPercent(dgnssFillOpacity);
+      const sliderValue = parseFloat(e.target.value);
+      dgnssFillOpacity = sliderValue * DGNSS_OPACITY_SCALE;
+      dgnssValueEl.textContent = toPercent(sliderValue);
       circles.forEach((circle) => circle.setStyle({ fillOpacity: dgnssFillOpacity }));
     });
 
     pppRtkSlider.addEventListener("input", (e) => {
-      pppRtkFillOpacity = parseFloat(e.target.value) * PPP_RTK_OPACITY_SCALE;
-      pppRtkValueEl.textContent = toPercent(pppRtkFillOpacity);
+      const sliderValue = parseFloat(e.target.value);
+      pppRtkFillOpacity = sliderValue * PPP_RTK_OPACITY_SCALE;
+      pppRtkValueEl.textContent = toPercent(sliderValue);
       pppRtkFillLayer.setStyle({ fillOpacity: pppRtkFillOpacity });
       pppRtkIslandLayers.forEach((circle) => circle.setStyle({ fillOpacity: pppRtkFillOpacity }));
     });
