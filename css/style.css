@@ -62,11 +62,6 @@ html, body {
   flex: 1;
 }
 
-/* 실제 타일의 해안선 디테일은 유지한 채 육지=크림/바다=옅은 파랑 2색으로 재매핑 */
-#map .leaflet-tile-pane {
-  filter: url(#duotone-korea);
-}
-
 .graticule-labels {
   position: absolute;
   inset: 0;

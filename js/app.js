@@ -25,13 +25,12 @@
     minZoom: 5,
   }).setView([36.2, 127.8], 7);
 
-  // 지명 라벨이 없는 일반 지도. CARTO Voyager는 익명 요청 제한으로
-  // "API KEY REQUIRED" 워터마크가 뜨는 문제가 있어 Esri World Ocean
-  // Base(라벨 없음, 키 불필요)로 교체함.
+  // 구글어스류 지형도 느낌(음영기복 + 자연스러운 초록/갈색 채색)의 베이스맵.
+  // Esri NatGeo World Map은 키 없이 쓸 수 있고 줌 16까지 지원함.
   L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
     {
-      attribution: "Tiles &copy; Esri &mdash; GEBCO, NOAA, National Geographic, Garmin, HERE",
+      attribution: "Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
       maxZoom: 16,
     }
   ).addTo(map);
@@ -48,12 +47,17 @@
   const PPP_RTK_COLOR = "#00897b";
 
   const pppRtkLayer = L.layerGroup();
-  const pppRtkStyle = {
+  const pppRtkFillStyle = {
+    stroke: false,
+    fillColor: PPP_RTK_COLOR,
+    fillOpacity: 0.3,
+    interactive: false,
+  };
+  const pppRtkOutlineStyle = {
     color: PPP_RTK_COLOR,
     weight: 2,
     opacity: 0.8,
-    fillColor: PPP_RTK_COLOR,
-    fillOpacity: 0.3,
+    fill: false,
     interactive: false,
   };
 
@@ -62,6 +66,11 @@
   // 폴리곤으로 그림. 육지 부분(본토/제주/서해 5도 각각, 그리고 휴전선
   // 부근에서 우리 구역과 겹치는 북한 육지 조각들)은 구멍(hole)으로
   // 뚫어서 해상 구역만 채색.
+  //
+  // Leaflet은 폴리곤의 모든 링(외곽선 + 구멍)을 같은 색으로 테두리
+  // 그리기 때문에, 채색용 폴리곤은 테두리 없이(stroke:false)만 그리고
+  // 실제 경계선은 PPP_RTK_ZONE 외곽 좌표만 따로 폴리라인으로 그려서
+  // 해안선(육지 라인)에는 색이 들어가지 않도록 함.
   L.polygon(
     [
       PPP_RTK_ZONE,
@@ -74,12 +83,19 @@
       PPP_RTK_UDO_HOLE,
       ...PPP_RTK_NORTH_HOLES,
     ],
-    pppRtkStyle
+    pppRtkFillStyle
   ).addTo(pppRtkLayer);
+
+  L.polygon(PPP_RTK_ZONE, pppRtkOutlineStyle).addTo(pppRtkLayer);
 
   PPP_RTK_ISLANDS.forEach((island) => {
     L.circle([island.lat, island.lng], {
-      ...pppRtkStyle,
+      color: PPP_RTK_COLOR,
+      weight: 2,
+      opacity: 0.8,
+      fillColor: PPP_RTK_COLOR,
+      fillOpacity: 0.3,
+      interactive: false,
       radius: island.radiusKm * 1000,
     }).addTo(pppRtkLayer);
   });
