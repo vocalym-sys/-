@@ -36,13 +36,22 @@
   // 지명/도로는 없지만 한반도 지역은 원본 해상도가 줌 8까지뿐이라 그
   // 이상은 흐려졌음. Esri World Imagery(실제 위성사진, 구글어스
   // 기본 화면과 동일한 방식)로 교체 — 위성사진 자체에는 지명/도로
-  // 텍스트가 없고, 한반도 지역도 줌 17+까지 실제 고해상도 데이터가
-  // 있어 확대해도 흐려지지 않음.
+  // 텍스트가 없음.
+  //
+  // maxNativeZoom: 실제 타일 서버 응답을 확인해 정한 값(18). 서울·부산·
+  // 여수 등 도심/본토 연안은 줌 19까지도 실사진이 있지만, 마라도·
+  // 울릉도·독도·백령도·속초처럼 이 지도가 특히 다루는 외곽 도서 지역은
+  // 줌 19부터 "Map data not yet available" 플레이스홀더가 나옴 — 그래서
+  // 모든 지역에서 실사진이 보장되는 18을 공통 상한으로 잡음.
+  // maxZoom: 18보다 더 당겨보고 싶을 때를 위해 20까지 허용 — 이 구간은
+  // Leaflet이 18줌 타일을 확대(디지털 줌)해서 보여주므로 화질은
+  // 흐려지지만, 서버의 빈 타일 대신 항상 뭔가는 표시됨.
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
       attribution: "Tiles &copy; Esri &mdash; Esri, Vantor, Earthstar Geographics, and the GIS User Community",
-      maxZoom: 16,
+      maxNativeZoom: 18,
+      maxZoom: 20,
     }
   ).addTo(map);
 
