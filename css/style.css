@@ -26,9 +26,18 @@ html, body {
 }
 
 #header {
-  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
+}
+
+.header-title {
+  flex-shrink: 0;
 }
 
 #header h1 {
@@ -37,7 +46,7 @@ html, body {
 }
 
 .subtitle {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   font-size: 12.5px;
   color: var(--text-muted);
 }
@@ -280,11 +289,8 @@ html, body {
 #toolbar {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
+  gap: 20px;
   flex-wrap: wrap;
-  padding: 8px 20px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
 }
 
 .toolbar-group {
