@@ -23,11 +23,17 @@
   <div id="layout">
     <aside id="sidebar">
       <div class="category-group" id="categoryToggles">
-        <label class="category-toggle">
-          <input type="checkbox" id="toggleDgnss" checked />
-          <span class="legend-swatch swatch-dgnss"></span>
-          <span>DGNSS 서비스 범위</span>
-        </label>
+        <div class="category-toggle-row">
+          <label class="category-toggle">
+            <input type="checkbox" id="toggleDgnss" checked />
+            <span class="legend-swatch swatch-dgnss"></span>
+            <span>DGNSS 서비스 범위</span>
+          </label>
+          <label class="coverage-toggle">
+            <input type="checkbox" id="toggleCoverage" checked />
+            <span>커버리지 반경</span>
+          </label>
+        </div>
         <div class="opacity-row">
           <span>투명도</span>
           <input type="range" id="dgnssOpacity" min="0" max="1" step="0.05" value="0.5" />
@@ -47,6 +53,16 @@
           <input type="checkbox" id="toggleBasepoints" checked />
           <span>영해기점(별표1) 23개소</span>
         </label>
+        <label class="category-toggle">
+          <input type="checkbox" id="toggleSpecialZone" />
+          <span class="legend-swatch swatch-specialzone"></span>
+          <span>특정해역(별표2)</span>
+        </label>
+        <label class="category-toggle">
+          <input type="checkbox" id="toggleRestraintZone" />
+          <span class="legend-swatch swatch-restraintzone"></span>
+          <span>조업자제해역(별표4)</span>
+        </label>
       </div>
 
       <div id="dgnssPanel">
@@ -64,7 +80,9 @@
         DGNSS 커버리지 반경: 해양 100해리(185.2km), 내륙 80km (점선원, 확인용 추정치)<br>
         PPP-RTK 구역: 영해 및 접속수역법 시행령 별표1(직선기선 23개 기점)·별표2(대한해협 특례)의
         공식 좌표를 기준으로 계산한 영해(12해리, 대한해협 3해리) 경계<br>
-        영해기점(보라 마름모): 별표1 직선기선 23개 기점 좌표(국립해양박물관 해양조사보고서 1권, 2017)
+        영해기점(보라 마름모): 별표1 직선기선 23개 기점 좌표(국립해양박물관 해양조사보고서 1권, 2017)<br>
+        특정해역: 어선안전조업법 시행령 별표2(동해/서해특정해역) — 조업한계선 구간은 근사치<br>
+        조업자제해역: 어선안전조업법 시행령 별표4(동해/서해조업자제해역)
       </div>
     </aside>
 
@@ -76,6 +94,7 @@
 <script src="js/stations.js"></script>
 <script src="js/ppp-rtk.js"></script>
 <script src="js/basepoints.js"></script>
+<script src="js/special-zones.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -119,6 +119,39 @@ html, body {
   user-select: none;
 }
 
+.category-toggle-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
+
+.category-toggle-row .category-toggle {
+  white-space: nowrap;
+}
+
+.coverage-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1.5px dashed #b8bec7;
+  font-size: 11.5px;
+  font-weight: normal;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.coverage-toggle input {
+  accent-color: var(--text-muted);
+  cursor: pointer;
+}
+
 .opacity-row {
   display: flex;
   align-items: center;
@@ -158,6 +191,16 @@ html, body {
   background: #c0392b;
 }
 
+.swatch-specialzone {
+  background: rgba(243, 156, 18, 0.35);
+  border: 1.5px solid #e67e22;
+}
+
+.swatch-restraintzone {
+  background: rgba(142, 68, 173, 0.25);
+  border: 1.5px dashed #8e44ad;
+}
+
 .category-toggle input {
   accent-color: var(--accent);
   cursor: pointer;
@@ -190,16 +233,6 @@ html, body {
 
 .filter-chip input {
   accent-color: var(--chip-color, var(--accent));
-}
-
-.coverage-chip {
-  border-style: dashed;
-  color: var(--text-muted);
-  border-color: #b8bec7;
-}
-
-.coverage-chip input {
-  accent-color: var(--text-muted);
 }
 
 .station-count {
@@ -347,7 +380,7 @@ html, body {
   border-radius: 4px;
   padding: 6px 8px;
   font-size: 12.5px;
-  width: 170px;
+  width: 150px;
   font-family: inherit;
   color: var(--text);
 }
@@ -357,10 +390,6 @@ html, body {
   font-size: 11.5px;
   color: #c0392b;
   min-height: 1em;
-}
-
-.coord-pin-row {
-  margin-top: 6px;
 }
 
 .pin-marker span {

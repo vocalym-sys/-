@@ -165,6 +165,33 @@
   });
   basepointsLayer.addTo(map);
 
+  // --- 특정해역(어선안전조업법 시행령 별표2) / 조업자제해역(별표4) ---
+  // 서비스 범위(DGNSS/PPP-RTK)와 구별되는 규제구역이라 기본은 꺼둠.
+  const specialZoneStyle = {
+    color: "#e67e22",
+    weight: 1.5,
+    opacity: 0.9,
+    fillColor: "#f39c12",
+    fillOpacity: 0.18,
+  };
+  const specialZoneLayer = L.layerGroup([
+    L.polygon(SPECIAL_SEA_ZONE_EAST, specialZoneStyle),
+    L.polygon(SPECIAL_SEA_ZONE_WEST, specialZoneStyle),
+  ]);
+
+  const restraintZoneStyle = {
+    color: "#8e44ad",
+    weight: 1.5,
+    opacity: 0.9,
+    dashArray: "6 4",
+    fillColor: "#8e44ad",
+    fillOpacity: 0.12,
+  };
+  const restraintZoneLayer = L.layerGroup([
+    L.polygon(FISHING_RESTRAINT_ZONE_EAST, restraintZoneStyle),
+    L.polygon(FISHING_RESTRAINT_ZONE_WEST, restraintZoneStyle),
+  ]);
+
   // --- 위경도 1도 격자 ---
   // 격자선은 지도 좌표계에 고정(팬/줌 시 자연스럽게 함께 움직임).
   // 라벨은 지도가 아니라 "화면"의 좌측/하단 가장자리에 고정되도록
@@ -320,18 +347,6 @@
       });
       container.appendChild(wrap);
     });
-
-    const coverageWrap = document.createElement("label");
-    coverageWrap.className = "filter-chip coverage-chip";
-    coverageWrap.innerHTML = `
-      <input type="checkbox" id="filter-coverage" checked />
-      <span>커버리지 반경</span>
-    `;
-    coverageWrap.querySelector("input").addEventListener("change", (e) => {
-      showCoverage = e.target.checked;
-      applyFilter();
-    });
-    container.appendChild(coverageWrap);
   }
 
   function stationVisible(station) {
@@ -704,6 +719,8 @@
   function buildCoordToolbar() {
     const container = document.getElementById("coordToolbar");
 
+    // 좌표 검색과 좌표 찍기/핀 지우기를 한 줄에 나란히 배치해 툴바 세로
+    // 높이를 줄임(제목 탭과 같은 높이에 들어가야 하므로).
     const searchRow = L.DomUtil.create("div", "coord-search-row", container);
     const input = L.DomUtil.create("input", "coord-search-input", searchRow);
     input.type = "text";
@@ -719,20 +736,19 @@
     searchBtn.textContent = "이동";
     searchBtn.addEventListener("click", handleCoordSearch);
 
-    const errorEl = L.DomUtil.create("div", "coord-search-error", container);
-    errorEl.id = "coordSearchError";
-
-    const pinRow = L.DomUtil.create("div", "measure-buttons coord-pin-row", container);
-    const pinBtn = L.DomUtil.create("button", "measure-btn", pinRow);
+    const pinBtn = L.DomUtil.create("button", "measure-btn", searchRow);
     pinBtn.id = "coordPinBtn";
     pinBtn.type = "button";
     pinBtn.textContent = "📍 좌표 찍기";
     pinBtn.addEventListener("click", () => setPinMode(!pinMode));
 
-    const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", pinRow);
+    const clearBtn = L.DomUtil.create("button", "measure-btn measure-btn-clear", searchRow);
     clearBtn.type = "button";
     clearBtn.textContent = "핀 지우기";
     clearBtn.addEventListener("click", clearPins);
+
+    const errorEl = L.DomUtil.create("div", "coord-search-error", container);
+    errorEl.id = "coordSearchError";
   }
 
   buildCoordToolbar();
@@ -781,6 +797,7 @@
 
   function wireCategoryToggles() {
     const dgnssToggle = document.getElementById("toggleDgnss");
+    const coverageToggle = document.getElementById("toggleCoverage");
     const pppRtkToggle = document.getElementById("togglePppRtk");
     const basepointsToggle = document.getElementById("toggleBasepoints");
     const dgnssPanel = document.getElementById("dgnssPanel");
@@ -788,6 +805,11 @@
     dgnssToggle.addEventListener("change", (e) => {
       dgnssCategoryOn = e.target.checked;
       dgnssPanel.classList.toggle("hidden", !dgnssCategoryOn);
+      applyFilter();
+    });
+
+    coverageToggle.addEventListener("change", (e) => {
+      showCoverage = e.target.checked;
       applyFilter();
     });
 
@@ -805,6 +827,24 @@
         basepointsLayer.addTo(map);
       } else {
         map.removeLayer(basepointsLayer);
+      }
+    });
+
+    const specialZoneToggle = document.getElementById("toggleSpecialZone");
+    specialZoneToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        specialZoneLayer.addTo(map);
+      } else {
+        map.removeLayer(specialZoneLayer);
+      }
+    });
+
+    const restraintZoneToggle = document.getElementById("toggleRestraintZone");
+    restraintZoneToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        restraintZoneLayer.addTo(map);
+      } else {
+        map.removeLayer(restraintZoneLayer);
       }
     });
   }
