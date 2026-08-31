@@ -243,6 +243,17 @@ html, body {
   align-self: center;
 }
 
+.haegu-number-label {
+  font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #d35400;
+  opacity: 0.75;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 .category-toggle input {
   accent-color: var(--accent);
   cursor: pointer;

@@ -239,10 +239,9 @@
   // 전체를 균일한 선 집합으로 그리는 것과 동일함(공식 해도에서도 격자선은
   // 육지 위까지 끊김없이 이어짐).
   //
-  // 참고: 격자 번호(대해구 73, 116~146 등 공식 해상구역도에 표기된 번호)는
-  // 공개된 대해구 번호-좌표 대응표를 찾지 못해 포함하지 않음 — 격자 자체는
-  // 위 범위·간격 규격대로 정확하지만, 번호가 필요하면 공식 대응표를 받아
-  // 추가하는 게 정확함.
+  // 대해구 번호(예: 독도=74, 소청도=144)는 js/haegu-numbers.js의
+  // DAEHAEGU_NUMBERS 참고 — 국립해양조사원 "대한민국연안해상구역도" 해도를
+  // 판독해 한반도 연근해 핵심 해역만 채운 표(전 해역 대응표는 아님).
   const HAEGU_MIN_LAT = 25;
   const HAEGU_MAX_LAT = 46;
   const HAEGU_MIN_LNG = 119;
@@ -279,6 +278,19 @@
     weight: 1,
     opacity: 0.6,
   });
+
+  for (const [key, no] of Object.entries(DAEHAEGU_NUMBERS)) {
+    const [lat, lng] = key.split(",").map(Number);
+    L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: "haegu-number-label",
+        html: String(no),
+        iconSize: null,
+      }),
+      interactive: false,
+      keyboard: false,
+    }).addTo(daehaeguLayer);
+  }
 
   const sohaeguLayer = buildHaeguGridLayer(SOHAEGU_STEP, {
     color: "#d35400",
