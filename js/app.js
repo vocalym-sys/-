@@ -111,12 +111,18 @@
     pppRtkFillStyle
   ).addTo(pppRtkLayer);
 
-  // PPP_RTK_INVISIBLE_RANGE 구간(한강하류~군사분계선 동쪽끝, 내륙이라
-  // 실제 서비스 구역 경계가 아님)만 제외하고 나머지 외곽선을 하나의
-  // 열린 폴리라인으로 이어 그림.
+  // 경계선(=영해한계선, 영해및접속수역법 제1조)은 PPP-RTK 서비스 범위
+  // 채색과 같은 좌표를 쓰지만, 법적으로는 별개 개념이라 별도 토글
+  // (#toggleTerritorialLimit)로 분리해 그림 — pppRtkLayer가 아니라
+  // 독립된 territorialLimitLayer에 둠. PPP_RTK_INVISIBLE_RANGE 구간
+  // (한강하류~군사분계선 동쪽끝, 내륙이라 실제 경계가 아님)만 제외하고
+  // 나머지 외곽선을 하나의 열린 폴리라인으로 이어 그림.
   const [invisibleStart, invisibleEnd] = PPP_RTK_INVISIBLE_RANGE;
   const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
-  L.polyline(visibleOutline, pppRtkOutlineStyle).addTo(pppRtkLayer);
+  const territorialLimitLayer = L.layerGroup([
+    L.polyline(visibleOutline, pppRtkOutlineStyle),
+  ]);
+  territorialLimitLayer.addTo(map);
 
   const pppRtkIslandLayers = PPP_RTK_ISLANDS.map((island) =>
     L.circle([island.lat, island.lng], {
@@ -190,6 +196,38 @@
   const restraintZoneLayer = L.layerGroup([
     L.polygon(FISHING_RESTRAINT_ZONE_EAST, restraintZoneStyle),
     L.polygon(FISHING_RESTRAINT_ZONE_WEST, restraintZoneStyle),
+  ]);
+
+  // --- 한일중간선 / 한일중간수역(한일어업협정) / 한중잠정조치수역(한중어업협정) ---
+  const koreaJapanMedianLineLayer = L.layerGroup([
+    L.polyline(KR_JP_MEDIAN_LINE, {
+      color: "#27ae60",
+      weight: 1.5,
+      opacity: 0.9,
+    }),
+  ]);
+
+  const koreaJapanJointZoneStyle = {
+    color: "#16a085",
+    weight: 1.5,
+    opacity: 0.9,
+    fillColor: "#1abc9c",
+    fillOpacity: 0.15,
+  };
+  const koreaJapanJointZoneLayer = L.layerGroup([
+    L.polygon(KR_JP_JOINT_ZONE_EAST_SEA, koreaJapanJointZoneStyle),
+    L.polygon(KR_JP_JOINT_ZONE_JEJU_WEST, koreaJapanJointZoneStyle),
+    L.polygon(KR_JP_JOINT_ZONE_JEJU_EAST, koreaJapanJointZoneStyle),
+  ]);
+
+  const koreaChinaProvisionalZoneLayer = L.layerGroup([
+    L.polygon(KR_CN_PROVISIONAL_ZONE, {
+      color: "#2c3e8c",
+      weight: 1.5,
+      opacity: 0.9,
+      fillColor: "#3f51b5",
+      fillOpacity: 0.15,
+    }),
   ]);
 
   // --- 위경도 1도 격자 ---
@@ -830,6 +868,15 @@
       }
     });
 
+    const territorialLimitToggle = document.getElementById("toggleTerritorialLimit");
+    territorialLimitToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        territorialLimitLayer.addTo(map);
+      } else {
+        map.removeLayer(territorialLimitLayer);
+      }
+    });
+
     const specialZoneToggle = document.getElementById("toggleSpecialZone");
     specialZoneToggle.addEventListener("change", (e) => {
       if (e.target.checked) {
@@ -845,6 +892,33 @@
         restraintZoneLayer.addTo(map);
       } else {
         map.removeLayer(restraintZoneLayer);
+      }
+    });
+
+    const koreaJapanMedianLineToggle = document.getElementById("toggleKoreaJapanMedianLine");
+    koreaJapanMedianLineToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        koreaJapanMedianLineLayer.addTo(map);
+      } else {
+        map.removeLayer(koreaJapanMedianLineLayer);
+      }
+    });
+
+    const koreaJapanJointZoneToggle = document.getElementById("toggleKoreaJapanJointZone");
+    koreaJapanJointZoneToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        koreaJapanJointZoneLayer.addTo(map);
+      } else {
+        map.removeLayer(koreaJapanJointZoneLayer);
+      }
+    });
+
+    const koreaChinaProvisionalZoneToggle = document.getElementById("toggleKoreaChinaProvisionalZone");
+    koreaChinaProvisionalZoneToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        koreaChinaProvisionalZoneLayer.addTo(map);
+      } else {
+        map.removeLayer(koreaChinaProvisionalZoneLayer);
       }
     });
   }

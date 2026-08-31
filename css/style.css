@@ -191,6 +191,14 @@ html, body {
   background: #c0392b;
 }
 
+.swatch-territoriallimit {
+  background: transparent;
+  border: none;
+  border-top: 2px solid #7b241c;
+  height: 0;
+  align-self: center;
+}
+
 .swatch-specialzone {
   background: rgba(243, 156, 18, 0.35);
   border: 1.5px solid #e67e22;
@@ -199,6 +207,24 @@ html, body {
 .swatch-restraintzone {
   background: rgba(142, 68, 173, 0.25);
   border: 1.5px dashed #8e44ad;
+}
+
+.swatch-kjmedianline {
+  background: transparent;
+  border: none;
+  border-top: 2px solid #27ae60;
+  height: 0;
+  align-self: center;
+}
+
+.swatch-kjjointzone {
+  background: rgba(26, 188, 156, 0.3);
+  border: 1.5px solid #16a085;
+}
+
+.swatch-kcprovisional {
+  background: rgba(63, 81, 181, 0.3);
+  border: 1.5px solid #2c3e8c;
 }
 
 .category-toggle input {
