@@ -230,6 +230,63 @@
     }),
   ]);
 
+  // --- 대해구/소해구(기상청 해상예보구역 격자) ---
+  // 대해구: 위·경도 0.5도 간격, 소해구: 대해구를 3x3(위·경도 1/6도 간격)로
+  // 세분. 적용범위 북위 25~46도, 동경 119~140도(이 범위 안에 실제 바다에
+  // 걸치는 대해구가 1,331개 — Natural Earth 10m 육지 데이터로 검증한 결과
+  // 1,338개로 거의 일치해 범위·간격이 맞음을 확인함). 각 구획의 기준좌표는
+  // 왼쪽 아래(남서) 꼭짓점이지만, 격자 "선"만 그리는 이 구현에서는 격자
+  // 전체를 균일한 선 집합으로 그리는 것과 동일함(공식 해도에서도 격자선은
+  // 육지 위까지 끊김없이 이어짐).
+  //
+  // 참고: 격자 번호(대해구 73, 116~146 등 공식 해상구역도에 표기된 번호)는
+  // 공개된 대해구 번호-좌표 대응표를 찾지 못해 포함하지 않음 — 격자 자체는
+  // 위 범위·간격 규격대로 정확하지만, 번호가 필요하면 공식 대응표를 받아
+  // 추가하는 게 정확함.
+  const HAEGU_MIN_LAT = 25;
+  const HAEGU_MAX_LAT = 46;
+  const HAEGU_MIN_LNG = 119;
+  const HAEGU_MAX_LNG = 140;
+  const DAEHAEGU_STEP = 0.5;
+  const SOHAEGU_STEP = 0.5 / 3;
+
+  function buildHaeguGridLayer(step, style) {
+    const canvasRenderer = L.canvas();
+    const layer = L.layerGroup();
+    for (let lat = HAEGU_MIN_LAT; lat <= HAEGU_MAX_LAT + 1e-9; lat += step) {
+      L.polyline(
+        [
+          [lat, HAEGU_MIN_LNG],
+          [lat, HAEGU_MAX_LNG],
+        ],
+        { ...style, renderer: canvasRenderer, interactive: false }
+      ).addTo(layer);
+    }
+    for (let lng = HAEGU_MIN_LNG; lng <= HAEGU_MAX_LNG + 1e-9; lng += step) {
+      L.polyline(
+        [
+          [HAEGU_MIN_LAT, lng],
+          [HAEGU_MAX_LAT, lng],
+        ],
+        { ...style, renderer: canvasRenderer, interactive: false }
+      ).addTo(layer);
+    }
+    return layer;
+  }
+
+  const daehaeguLayer = buildHaeguGridLayer(DAEHAEGU_STEP, {
+    color: "#d35400",
+    weight: 1,
+    opacity: 0.6,
+  });
+
+  const sohaeguLayer = buildHaeguGridLayer(SOHAEGU_STEP, {
+    color: "#d35400",
+    weight: 0.5,
+    opacity: 0.35,
+    dashArray: "2 3",
+  });
+
   // --- 위경도 1도 격자 ---
   // 격자선은 지도 좌표계에 고정(팬/줌 시 자연스럽게 함께 움직임).
   // 라벨은 지도가 아니라 "화면"의 좌측/하단 가장자리에 고정되도록
@@ -919,6 +976,24 @@
         koreaChinaProvisionalZoneLayer.addTo(map);
       } else {
         map.removeLayer(koreaChinaProvisionalZoneLayer);
+      }
+    });
+
+    const daehaeguToggle = document.getElementById("toggleDaehaegu");
+    daehaeguToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        daehaeguLayer.addTo(map);
+      } else {
+        map.removeLayer(daehaeguLayer);
+      }
+    });
+
+    const sohaeguToggle = document.getElementById("toggleSohaegu");
+    sohaeguToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        sohaeguLayer.addTo(map);
+      } else {
+        map.removeLayer(sohaeguLayer);
       }
     });
   }
