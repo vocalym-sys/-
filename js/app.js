@@ -119,8 +119,15 @@
   // 나머지 외곽선을 하나의 열린 폴리라인으로 이어 그림.
   const [invisibleStart, invisibleEnd] = PPP_RTK_INVISIBLE_RANGE;
   const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
+  const territorialLimitStyle = {
+    color: "#f1c40f",
+    weight: 1.8,
+    opacity: 0.95,
+    fill: false,
+    interactive: false,
+  };
   const territorialLimitLayer = L.layerGroup([
-    L.polyline(visibleOutline, pppRtkOutlineStyle),
+    L.polyline(visibleOutline, territorialLimitStyle),
   ]);
   territorialLimitLayer.addTo(map);
 
