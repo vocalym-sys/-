@@ -230,24 +230,23 @@
     }),
   ]);
 
-  // --- 대해구/소해구(기상청 해상예보구역 격자) ---
-  // 대해구: 위·경도 0.5도 간격, 소해구: 대해구를 3x3(위·경도 1/6도 간격)로
-  // 세분. 적용범위 북위 25~46도, 동경 119~140도(이 범위 안에 실제 바다에
-  // 걸치는 대해구가 1,331개 — Natural Earth 10m 육지 데이터로 검증한 결과
-  // 1,338개로 거의 일치해 범위·간격이 맞음을 확인함). 각 구획의 기준좌표는
-  // 왼쪽 아래(남서) 꼭짓점이지만, 격자 "선"만 그리는 이 구현에서는 격자
-  // 전체를 균일한 선 집합으로 그리는 것과 동일함(공식 해도에서도 격자선은
-  // 육지 위까지 끊김없이 이어짐).
+  // --- 해구(대해구, 기상청 해상예보구역 격자) ---
+  // 위·경도 0.5도 간격. 적용범위 북위 25~46도, 동경 119~140도(이 범위 안에
+  // 실제 바다에 걸치는 대해구가 1,331개 — Natural Earth 10m 육지 데이터로
+  // 검증한 결과 1,338개로 거의 일치해 범위·간격이 맞음을 확인함). 각 구획의
+  // 기준좌표는 왼쪽 아래(남서) 꼭짓점이지만, 격자 "선"만 그리는 이
+  // 구현에서는 격자 전체를 균일한 선 집합으로 그리는 것과 동일함(공식
+  // 해도에서도 격자선은 육지 위까지 끊김없이 이어짐).
   //
-  // 대해구 번호(예: 독도=74, 소청도=144)는 js/haegu-numbers.js의
+  // 해구번호(예: 독도=74, 소청도=144)는 js/haegu-numbers.js의
   // DAEHAEGU_NUMBERS 참고 — 국립해양조사원 "대한민국연안해상구역도" 해도를
-  // 판독해 한반도 연근해 핵심 해역만 채운 표(전 해역 대응표는 아님).
+  // 판독해 한반도 연근해 핵심 해역만 채운 표(전 해역 대응표는 아님). 격자와
+  // 별도 레이어로 두어 번호만 따로 껐다 켤 수 있음.
   const HAEGU_MIN_LAT = 25;
   const HAEGU_MAX_LAT = 46;
   const HAEGU_MIN_LNG = 119;
   const HAEGU_MAX_LNG = 140;
   const DAEHAEGU_STEP = 0.5;
-  const SOHAEGU_STEP = 0.5 / 3;
 
   function buildHaeguGridLayer(step, style) {
     const canvasRenderer = L.canvas();
@@ -279,6 +278,7 @@
     opacity: 0.6,
   });
 
+  const haeguNumberLayer = L.layerGroup();
   for (const [key, no] of Object.entries(DAEHAEGU_NUMBERS)) {
     const [lat, lng] = key.split(",").map(Number);
     L.marker([lat, lng], {
@@ -289,15 +289,8 @@
       }),
       interactive: false,
       keyboard: false,
-    }).addTo(daehaeguLayer);
+    }).addTo(haeguNumberLayer);
   }
-
-  const sohaeguLayer = buildHaeguGridLayer(SOHAEGU_STEP, {
-    color: "#d35400",
-    weight: 0.5,
-    opacity: 0.35,
-    dashArray: "2 3",
-  });
 
   // --- 위경도 1도 격자 ---
   // 격자선은 지도 좌표계에 고정(팬/줌 시 자연스럽게 함께 움직임).
@@ -1000,12 +993,12 @@
       }
     });
 
-    const sohaeguToggle = document.getElementById("toggleSohaegu");
-    sohaeguToggle.addEventListener("change", (e) => {
+    const haeguNumbersToggle = document.getElementById("toggleHaeguNumbers");
+    haeguNumbersToggle.addEventListener("change", (e) => {
       if (e.target.checked) {
-        sohaeguLayer.addTo(map);
+        haeguNumberLayer.addTo(map);
       } else {
-        map.removeLayer(sohaeguLayer);
+        map.removeLayer(haeguNumberLayer);
       }
     });
   }

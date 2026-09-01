@@ -83,16 +83,17 @@
           <span class="legend-swatch swatch-kcprovisional"></span>
           <span>한·중잠정조치수역(한중어업협정 제7조)</span>
         </label>
-        <label class="category-toggle">
-          <input type="checkbox" id="toggleDaehaegu" />
-          <span class="legend-swatch swatch-daehaegu"></span>
-          <span>대해구 격자(0.5°)</span>
-        </label>
-        <label class="category-toggle">
-          <input type="checkbox" id="toggleSohaegu" />
-          <span class="legend-swatch swatch-sohaegu"></span>
-          <span>소해구 격자(1/6°)</span>
-        </label>
+        <div class="category-toggle-row">
+          <label class="category-toggle">
+            <input type="checkbox" id="toggleDaehaegu" />
+            <span class="legend-swatch swatch-daehaegu"></span>
+            <span>해구 격자(0.5°)</span>
+          </label>
+          <label class="coverage-toggle">
+            <input type="checkbox" id="toggleHaeguNumbers" />
+            <span>해구번호</span>
+          </label>
+        </div>
       </div>
 
       <div id="dgnssPanel">
@@ -116,8 +117,8 @@
         한·일중간선/중간수역: 대한민국과 일본국 간의 어업에 관한 협정(1999년 발효) 제7조/제9조 —
         제주도남부 중간수역은 원문의 반직선 정의를 근사한 삼각형<br>
         한·중잠정조치수역: 대한민국 정부와 중화인민공화국 정부간의 어업에 관한 협정(2001년 발효) 제7조1항<br>
-        대해구/소해구 격자: 기상청 해상예보구역 규격(0.5°/1/6°, 북위 25~46도·동경 119~140도)<br>
-        대해구 번호: 국립해양조사원 "대한민국연안해상구역도"(2011) 표기 번호를 판독해 표시 —
+        해구 격자: 기상청 해상예보구역 규격(대해구, 0.5°, 북위 25~46도·동경 119~140도)<br>
+        해구번호: 국립해양조사원 "대한민국연안해상구역도"(2011) 표기 번호를 판독해 표시 —
         해당 해도 도곽 범위(북위 약 27~44도·동경 120~135도) 안에서 판독 가능한 번호를 모두 포함하며,
         도곽 밖(그 이북·이남·이서·이동) 나머지 대해구는 번호 표시 없음
       </div>

@@ -235,14 +235,6 @@ html, body {
   align-self: center;
 }
 
-.swatch-sohaegu {
-  background: transparent;
-  border: none;
-  border-top: 1px dashed #d35400;
-  height: 0;
-  align-self: center;
-}
-
 .haegu-number-label {
   font-family: "SFMono-Regular", "Consolas", "Menlo", monospace;
   font-size: 11px;
