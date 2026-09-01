@@ -198,6 +198,24 @@
     L.polygon(FISHING_RESTRAINT_ZONE_WEST, restraintZoneStyle),
   ]);
 
+  // --- 서해특정해역 세부 조업구역(어선안전조업규정 별표1) ---
+  // 위 서해특정해역(SPECIAL_SEA_ZONE_WEST)을 대청도어선/저인망/덕적도서방
+  // 3개 조업구역으로 세분한 경계. 서로 맞닿아 있어 하나의 스타일로 묶어
+  // 그림(별표1 자체가 색상 구분을 두지 않음).
+  const westFishingZoneStyle = {
+    color: "#1f6fb0",
+    weight: 1.5,
+    opacity: 0.9,
+    dashArray: "3 3",
+    fillColor: "#3498db",
+    fillOpacity: 0.12,
+  };
+  const westFishingZoneLayer = L.layerGroup([
+    L.polygon(DAECHEONGDO_FISHING_ZONE, westFishingZoneStyle),
+    L.polygon(TRAWL_FISHING_ZONE, westFishingZoneStyle),
+    L.polygon(DEOKJEOKDO_WEST_FISHING_ZONE, westFishingZoneStyle),
+  ]);
+
   // --- 한일중간선 / 한일중간수역(한일어업협정) / 한중잠정조치수역(한중어업협정) ---
   const koreaJapanMedianLineLayer = L.layerGroup([
     L.polyline(KR_JP_MEDIAN_LINE, {
@@ -937,6 +955,15 @@
         restraintZoneLayer.addTo(map);
       } else {
         map.removeLayer(restraintZoneLayer);
+      }
+    });
+
+    const westFishingZoneToggle = document.getElementById("toggleWestFishingZone");
+    westFishingZoneToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        westFishingZoneLayer.addTo(map);
+      } else {
+        map.removeLayer(westFishingZoneLayer);
       }
     });
 

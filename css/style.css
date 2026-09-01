@@ -209,6 +209,11 @@ html, body {
   border: 1.5px dashed #8e44ad;
 }
 
+.swatch-westfishingzone {
+  background: rgba(52, 152, 219, 0.2);
+  border: 1.5px dashed #1f6fb0;
+}
+
 .swatch-kjmedianline {
   background: transparent;
   border: none;
