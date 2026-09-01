@@ -231,48 +231,31 @@
   ]);
 
   // --- 해구(대해구, 기상청 해상예보구역 격자) ---
-  // 위·경도 0.5도 간격. 적용범위 북위 25~46도, 동경 119~140도(이 범위 안에
-  // 실제 바다에 걸치는 대해구가 1,331개 — Natural Earth 10m 육지 데이터로
-  // 검증한 결과 1,338개로 거의 일치해 범위·간격이 맞음을 확인함). 각 구획의
-  // 기준좌표는 왼쪽 아래(남서) 꼭짓점이지만, 격자 "선"만 그리는 이
-  // 구현에서는 격자 전체를 균일한 선 집합으로 그리는 것과 동일함(공식
-  // 해도에서도 격자선은 육지 위까지 끊김없이 이어짐).
-  //
-  // 해구번호(예: 독도=74, 소청도=144)는 js/haegu-numbers.js의
-  // DAEHAEGU_NUMBERS 참고 — 국립해양조사원 "대한민국연안해상구역도" 해도를
-  // 판독해 한반도 연근해 핵심 해역만 채운 표(전 해역 대응표는 아님). 격자와
-  // 별도 레이어로 두어 번호만 따로 껐다 켤 수 있음.
-  const HAEGU_MIN_LAT = 25;
-  const HAEGU_MAX_LAT = 46;
-  const HAEGU_MIN_LNG = 119;
-  const HAEGU_MAX_LNG = 140;
+  // 위·경도 0.5도 간격이지만, 격자선은 해구번호가 확인된 칸(아래
+  // haeguNumberLayer와 같은 js/haegu-numbers.js의 DAEHAEGU_NUMBERS)에
+  // 한해서만 그림 — 번호를 모르는 나머지 칸까지 균일한 선으로 채우면
+  // 실제로 확인 안 된 해구까지 있는 것처럼 보이므로, 확인된 칸의 경계만
+  // 사각형으로 그림.
   const DAEHAEGU_STEP = 0.5;
 
-  function buildHaeguGridLayer(step, style) {
+  function buildHaeguGridLayer(style) {
     const canvasRenderer = L.canvas();
     const layer = L.layerGroup();
-    for (let lat = HAEGU_MIN_LAT; lat <= HAEGU_MAX_LAT + 1e-9; lat += step) {
-      L.polyline(
+    const half = DAEHAEGU_STEP / 2;
+    for (const key of Object.keys(DAEHAEGU_NUMBERS)) {
+      const [lat, lng] = key.split(",").map(Number);
+      L.rectangle(
         [
-          [lat, HAEGU_MIN_LNG],
-          [lat, HAEGU_MAX_LNG],
+          [lat - half, lng - half],
+          [lat + half, lng + half],
         ],
-        { ...style, renderer: canvasRenderer, interactive: false }
-      ).addTo(layer);
-    }
-    for (let lng = HAEGU_MIN_LNG; lng <= HAEGU_MAX_LNG + 1e-9; lng += step) {
-      L.polyline(
-        [
-          [HAEGU_MIN_LAT, lng],
-          [HAEGU_MAX_LAT, lng],
-        ],
-        { ...style, renderer: canvasRenderer, interactive: false }
+        { ...style, fill: false, renderer: canvasRenderer, interactive: false }
       ).addTo(layer);
     }
     return layer;
   }
 
-  const daehaeguLayer = buildHaeguGridLayer(DAEHAEGU_STEP, {
+  const daehaeguLayer = buildHaeguGridLayer({
     color: "#d35400",
     weight: 1,
     opacity: 0.6,
