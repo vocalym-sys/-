@@ -199,6 +199,11 @@ html, body {
   align-self: center;
 }
 
+.swatch-mobilecoverage {
+  background: rgba(46, 204, 113, 0.25);
+  border: 1.5px solid #27ae60;
+}
+
 .swatch-specialzone {
   background: rgba(243, 156, 18, 0.35);
   border: 1.5px solid #e67e22;

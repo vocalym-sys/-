@@ -223,6 +223,21 @@
     L.polygon(DEOKJEOKDO_WEST_FISHING_ZONE, westFishingZoneStyle),
   ]);
 
+  // --- 이동통신망(스마트폰 LTE) 해상 가청거리 (추정) ---
+  // js/mobile-coverage.js의 MOBILE_COVERAGE_POLYGONS 참고 — 공식 좌표
+  // 없는 추정치라 다른 법정 구역과 구별되게 초록색 계열로, 기본은 꺼둠.
+  const mobileCoverageLayer = L.layerGroup([
+    L.polygon(MOBILE_COVERAGE_POLYGONS, {
+      color: "#27ae60",
+      weight: 1,
+      opacity: 0.7,
+      fillColor: "#2ecc71",
+      fillOpacity: 0.15,
+      renderer: L.canvas(),
+      interactive: false,
+    }),
+  ]);
+
   // --- 한일중간선 / 한일중간수역(한일어업협정) / 한중잠정조치수역(한중어업협정) ---
   const koreaJapanMedianLineLayer = L.layerGroup([
     L.polyline(KR_JP_MEDIAN_LINE, {
@@ -971,6 +986,15 @@
         westFishingZoneLayer.addTo(map);
       } else {
         map.removeLayer(westFishingZoneLayer);
+      }
+    });
+
+    const mobileCoverageToggle = document.getElementById("toggleMobileCoverage");
+    mobileCoverageToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        mobileCoverageLayer.addTo(map);
+      } else {
+        map.removeLayer(mobileCoverageLayer);
       }
     });
 
