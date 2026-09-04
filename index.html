@@ -64,6 +64,11 @@
           <span>영해한계선(국가공간정보 공식자료)</span>
         </label>
         <label class="category-toggle">
+          <input type="checkbox" id="toggleNllLine" />
+          <span class="legend-swatch swatch-nllline"></span>
+          <span>북방한계선(NLL, 비공식 근사치)</span>
+        </label>
+        <label class="category-toggle">
           <input type="checkbox" id="toggleSpecialZone" />
           <span class="legend-swatch swatch-specialzone"></span>
           <span>특정해역(별표2)</span>
@@ -129,6 +134,11 @@
         영해기점(보라 마름모): 별표1 직선기선 23개 기점 좌표(국립해양박물관 해양조사보고서 1권, 2017)<br>
         영해한계선(국가공간정보 공식자료, 분홍색): 정부 공간정보 테이블 TB_ZN_TRTSEA(영해한계선)
         shapefile 원본 좌표 — 위 PPP-RTK 기준 추정치(노란색)와는 별개의 독립 레이어<br>
+        북방한계선(NLL, 녹색 점선): 1953년 유엔군사령관이 설정한 선으로 공식 고시 좌표가
+        없어(정부가 법정 기선처럼 관보에 공표한 좌표 아님) 공개 자료에서 정확한 꺾임점을
+        찾지 못함 — js/ppp-rtk.js 구축 시 사용한 서해 5도 구역 보정 지점을 재활용한 비공식
+        근사선(실제 NLL과 다를 수 있음). 동해 NLL은 공식적으로 정의된 선 자체가 없어 군사분계선
+        동쪽 끝에서 바다 쪽으로 단순 연장한 시각적 근사치일 뿐임<br>
         특정해역: 어선안전조업법 시행령 별표2(동해/서해특정해역) — 조업한계선 구간은 근사치<br>
         조업자제해역: 어선안전조업법 시행령 별표4(동해/서해조업자제해역)<br>
         서해특정해역 세부 조업구역: 어선안전조업규정(해양수산부고시) 별표1(대청도어선/저인망/덕적도서방
@@ -169,6 +179,7 @@
 <script src="js/stations.js"></script>
 <script src="js/ppp-rtk.js"></script>
 <script src="js/territorial-limit-official.js"></script>
+<script src="js/nll-line.js"></script>
 <script src="js/basepoints.js"></script>
 <script src="js/special-zones.js"></script>
 <script src="js/mobile-coverage.js"></script>

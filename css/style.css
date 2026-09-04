@@ -207,6 +207,14 @@ html, body {
   align-self: center;
 }
 
+.swatch-nllline {
+  background: transparent;
+  border: none;
+  border-top: 2px dashed #2ecc71;
+  height: 0;
+  align-self: center;
+}
+
 .swatch-mobilecoverage {
   background: rgba(46, 204, 113, 0.25);
   border: 1.5px solid #27ae60;

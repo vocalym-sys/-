@@ -151,6 +151,25 @@
     L.polyline(TERRITORIAL_LIMIT_OFFICIAL, territorialLimitOfficialStyle),
   ]);
 
+  // --- 북방한계선(NLL, 비공식 근사치) ---
+  // js/nll-line.js 참고 — 공식 고시 좌표가 없어(1953년 유엔군사령관이
+  // 일방적으로 설정) js/ppp-rtk.js 구축 때 이미 사용한 A·D·E·T 지점을
+  // 재활용한 근사선. 기본은 꺼진 상태. 점선 + 뚜렷한 녹색으로 다른
+  // 선들과 확실히 구분되게 표시하고, 비공식 근사치임을 토글 라벨에도
+  // 명시함(index.html 참고).
+  const nllLineStyle = {
+    color: "#2ecc71",
+    weight: 1.5,
+    opacity: 0.9,
+    dashArray: "6 4",
+    fill: false,
+    interactive: false,
+  };
+  const nllLineLayer = L.layerGroup([
+    L.polyline(NLL_WEST, nllLineStyle),
+    L.polyline(NLL_EAST, nllLineStyle),
+  ]);
+
   const pppRtkIslandLayers = PPP_RTK_ISLANDS.map((island) =>
     L.circle([island.lat, island.lng], {
       color: PPP_RTK_OUTLINE_COLOR,
@@ -988,6 +1007,15 @@
         territorialLimitOfficialLayer.addTo(map);
       } else {
         map.removeLayer(territorialLimitOfficialLayer);
+      }
+    });
+
+    const nllLineToggle = document.getElementById("toggleNllLine");
+    nllLineToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        nllLineLayer.addTo(map);
+      } else {
+        map.removeLayer(nllLineLayer);
       }
     });
 
