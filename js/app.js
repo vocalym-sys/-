@@ -119,12 +119,17 @@
   // 나머지 외곽선을 하나의 열린 폴리라인으로 이어 그림.
   const [invisibleStart, invisibleEnd] = PPP_RTK_INVISIBLE_RANGE;
   const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
+  // 국립해양조사원이 공개하는 참고 지도들의 "영해선" 표기 방식(점선)을
+  // 따라, 실선 대신 점선으로 그림 — dashArray를 아주 짧은 선+긴 여백으로,
+  // lineCap을 round로 줘서 네모난 대시가 아니라 동그란 점처럼 보이게 함.
   const territorialLimitStyle = {
     color: "#f1c40f",
-    weight: 1,
+    weight: 2,
     opacity: 0.95,
     fill: false,
     interactive: false,
+    dashArray: "1 7",
+    lineCap: "round",
   };
   const territorialLimitLayer = L.layerGroup([
     L.polyline(visibleOutline, territorialLimitStyle),
@@ -140,12 +145,16 @@
   // [독도, 본토, 울릉도] 3개 선(본토만 열린 선, 나머지는 폐곡선)의 배열 —
   // Leaflet의 L.polyline은 좌표 배열의 배열을 그대로 멀티 폴리라인으로
   // 받아들임.
+  // 위 territorialLimitStyle과 같은 이유로 점선 처리(국립해양조사원 참고
+  // 지도의 "영해선" 표기 방식).
   const territorialLimitOfficialStyle = {
     color: "#e91e63",
-    weight: 1,
+    weight: 2,
     opacity: 0.95,
     fill: false,
     interactive: false,
+    dashArray: "1 7",
+    lineCap: "round",
   };
   const territorialLimitOfficialLayer = L.layerGroup([
     L.polyline(TERRITORIAL_LIMIT_OFFICIAL, territorialLimitOfficialStyle),

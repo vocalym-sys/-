@@ -194,7 +194,7 @@ html, body {
 .swatch-territoriallimit {
   background: transparent;
   border: none;
-  border-top: 2px solid #f1c40f;
+  border-top: 2px dotted #f1c40f;
   height: 0;
   align-self: center;
 }
@@ -202,7 +202,7 @@ html, body {
 .swatch-territoriallimitofficial {
   background: transparent;
   border: none;
-  border-top: 2px solid #e91e63;
+  border-top: 2px dotted #e91e63;
   height: 0;
   align-self: center;
 }
