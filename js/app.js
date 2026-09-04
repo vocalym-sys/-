@@ -131,6 +131,26 @@
   ]);
   territorialLimitLayer.addTo(map);
 
+  // --- 영해한계선(국가공간정보 공식자료) ---
+  // 사용자가 제공한 정부 공간정보 테이블 TB_ZN_TRTSEA(영해한계선)
+  // shapefile 원본 좌표(js/territorial-limit-official.js 참고) — 위
+  // territorialLimitLayer(PPP_RTK_ZONE 기반 추정치)와는 독립된 별도
+  // 레이어. 기본은 꺼진 상태(#toggleTerritorialLimitOfficial)이고, 위
+  // 추정치 라인과 구별되도록 다른 색을 씀. TERRITORIAL_LIMIT_OFFICIAL은
+  // [독도, 본토, 울릉도] 3개 선(본토만 열린 선, 나머지는 폐곡선)의 배열 —
+  // Leaflet의 L.polyline은 좌표 배열의 배열을 그대로 멀티 폴리라인으로
+  // 받아들임.
+  const territorialLimitOfficialStyle = {
+    color: "#e91e63",
+    weight: 1,
+    opacity: 0.95,
+    fill: false,
+    interactive: false,
+  };
+  const territorialLimitOfficialLayer = L.layerGroup([
+    L.polyline(TERRITORIAL_LIMIT_OFFICIAL, territorialLimitOfficialStyle),
+  ]);
+
   const pppRtkIslandLayers = PPP_RTK_ISLANDS.map((island) =>
     L.circle([island.lat, island.lng], {
       color: PPP_RTK_OUTLINE_COLOR,
@@ -959,6 +979,15 @@
         territorialLimitLayer.addTo(map);
       } else {
         map.removeLayer(territorialLimitLayer);
+      }
+    });
+
+    const territorialLimitOfficialToggle = document.getElementById("toggleTerritorialLimitOfficial");
+    territorialLimitOfficialToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        territorialLimitOfficialLayer.addTo(map);
+      } else {
+        map.removeLayer(territorialLimitOfficialLayer);
       }
     });
 
