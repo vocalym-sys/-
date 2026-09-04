@@ -342,6 +342,34 @@
     }),
   ]);
 
+  // --- KPS(한국형 위성항법시스템) 격자점 ---
+  // 사용자가 표로 제공한 32개 격자점(js/kps-grid.js의 KPS_GRID_POINTS)을
+  // 그대로 점으로 찍음 — 아직 이 격자가 KPS의 공식 서비스 범위 경계인지
+  // 확인 전이라, 우선 점 좌표만 표시(면적/경계선은 없음). 기본은 꺼둠.
+  function kpsGridPopupHtml(point) {
+    return `
+      <div class="popup">
+        <h3>격자점 ${point.id} <span class="badge">KPS</span></h3>
+        <table>
+          <tr><td>위도</td><td>${point.lat}°</td></tr>
+          <tr><td>경도</td><td>${point.lng}°</td></tr>
+        </table>
+      </div>
+    `;
+  }
+  const kpsGridLayer = L.layerGroup();
+  KPS_GRID_POINTS.forEach((point) => {
+    L.marker([point.lat, point.lng], {
+      icon: L.divIcon({
+        className: "kps-grid-marker",
+        html: `<span class="dot"></span><span class="num">${point.id}</span>`,
+        iconSize: null,
+      }),
+    })
+      .bindPopup(kpsGridPopupHtml(point))
+      .addTo(kpsGridLayer);
+  });
+
   // --- 한일중간선 / 한일중간수역(한일어업협정) / 한중잠정조치수역(한중어업협정) ---
   const koreaJapanMedianLineLayer = L.layerGroup([
     L.polyline(KR_JP_MEDIAN_LINE, {
@@ -1117,6 +1145,15 @@
         mobileCoverageLayer.addTo(map);
       } else {
         map.removeLayer(mobileCoverageLayer);
+      }
+    });
+
+    const kpsGridToggle = document.getElementById("toggleKpsGrid");
+    kpsGridToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        kpsGridLayer.addTo(map);
+      } else {
+        map.removeLayer(kpsGridLayer);
       }
     });
 
