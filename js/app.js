@@ -144,8 +144,17 @@
     dashArray: "1 7",
     lineCap: "round",
   };
+  // 서해 5도(백령도·대청도·소청도·연평도·우도)는 23개 직선기선 기점에
+  // 안 들어가 있어(그 체인은 소령도에서 끝남) 위 visibleOutline에는
+  // 아예 빠져 있지만, 이 섬들도 실제 영토라 자기 해안선 기준 12해리
+  // 영해가 존재함 — 사용자가 지적한 대로, 그냥 빠뜨리면 안 됨. 본토
+  // 체인과 이어붙이지 않고(그러면 다시 NLL을 따라가는 가짜 직선기선처럼
+  // 보임) 울릉도·독도처럼 섬마다 독립된 폐곡선으로 추가함 — 각 폐곡선은
+  // js/five-islands-tsea.js에서 이미 NLL(js/ppp-rtk.js의 PPP_RTK_ZONE
+  // 경계)을 넘지 않도록 잘라서 만들어 둠.
   const territorialLimitLayer = L.layerGroup([
     L.polyline(visibleOutline, territorialLimitStyle),
+    ...FIVE_ISLANDS_TERRITORIAL_SEA.map((ring) => L.polyline(ring, territorialLimitStyle)),
   ]);
   territorialLimitLayer.addTo(map);
 
