@@ -139,6 +139,33 @@
   // C를 빼자 21˚→24˚→25˚로 매끄럽게 이어짐.
   const westSeaArc = TERRITORIAL_LIMIT_OFFICIAL[1].slice(0, 11).slice().reverse();
   const visibleOutline = visibleOutlineBase.concat(westSeaArc);
+  // 위 visibleOutline은 소령도 부근(37.16969, 125.6577)에서 다시 끊김 —
+  // 사용자가 지적한 "서북쪽으로 소청도·백령도 쪽으로 빠지는 라인"이
+  // 아직 없는 상태. 사용자가 정확한 두 좌표를 지정함 —
+  // 37-10-10.88N,125-39-27.73E(= 위 visibleOutline의 끝점과 사실상 동일)
+  // 부터 37-55-09.86N,123-59-53.41E(= 백령도 서단 부근, 1953년 유엔군사
+  // 령관이 설정한 NLL 서쪽 끝점으로 흔히 알려진 좌표와 거의 일치)까지를
+  // 참고 이미지처럼 매끄러운 곡선으로 이어달라는 요청. 두 점 사이의 실제
+  // 굴곡을 알려주는 좌표 자료는 없으므로, 직선 대신 2차 베지어 곡선으로
+  // 근사함 — 제어점을 직선(현弦)의 중점에서 육지 반대쪽(남서쪽, 바다
+  // 쪽)으로 살짝 밀어 완만하게 부풀린 곡선을 만듦(비공식 근사치).
+  function quadraticBezier(p0, p1, control, steps) {
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const mt = 1 - t;
+      pts.push([
+        mt * mt * p0[0] + 2 * mt * t * control[0] + t * t * p1[0],
+        mt * mt * p0[1] + 2 * mt * t * control[1] + t * t * p1[1],
+      ]);
+    }
+    return pts;
+  }
+  const nwCurveStart = visibleOutline[visibleOutline.length - 1];
+  const nwCurveEnd = [37.919406, 123.998169];
+  const nwCurveControl = [37.387, 124.715];
+  const nwCurve = quadraticBezier(nwCurveStart, nwCurveEnd, nwCurveControl, 48);
+  const visibleOutlineExtended = visibleOutline.concat(nwCurve.slice(1));
   // 국립해양조사원이 공개하는 참고 지도들의 "영해선" 표기 방식(점선)을
   // 따라, 실선 대신 점선으로 그림 — dashArray를 아주 짧은 선+긴 여백으로,
   // lineCap을 round로 줘서 네모난 대시가 아니라 동그란 점처럼 보이게 함.
@@ -160,7 +187,7 @@
   // js/five-islands-tsea.js에서 이미 NLL(js/ppp-rtk.js의 PPP_RTK_ZONE
   // 경계)을 넘지 않도록 잘라서 만들어 둠.
   const territorialLimitLayer = L.layerGroup([
-    L.polyline(visibleOutline, territorialLimitStyle),
+    L.polyline(visibleOutlineExtended, territorialLimitStyle),
     ...FIVE_ISLANDS_TERRITORIAL_SEA.map((ring) => L.polyline(ring, territorialLimitStyle)),
   ]);
   territorialLimitLayer.addTo(map);
