@@ -121,7 +121,7 @@
   const visibleOutline = PPP_RTK_ZONE.slice(invisibleEnd).concat(PPP_RTK_ZONE.slice(0, invisibleStart + 1));
   const territorialLimitStyle = {
     color: "#f1c40f",
-    weight: 1.8,
+    weight: 1,
     opacity: 0.95,
     fill: false,
     interactive: false,
